@@ -19,4 +19,8 @@ public class SharedServiceResources {
             hub.addListener(listener);
         }
     }
+
+    public static Hub getHub() {
+        return hub;
+    }
 }
