@@ -8,9 +8,11 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 
 public class StatusActivity extends Activity {
-    final static int REQUEST_FINE_LOCATION = 100;
+    public static final int REQUEST_FINE_LOCATION = 101;
+    public static final int REQUEST_DRAWING_RIGHTS = 102;
     private final String TAG = "StatusActivity";
 
     @Override
@@ -28,6 +30,14 @@ public class StatusActivity extends Activity {
                 MyoChooserLauncher.chooseMyo(activity);
             }
         });
+
+        Button cursorButton = (Button) findViewById(R.id.initilizeCursor);
+        cursorButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                PointerInitializer.checkPermissionsAndInitializePointer(activity);
+            }
+        });
     }
 
     @Override
@@ -38,6 +48,14 @@ public class StatusActivity extends Activity {
                     MyoChooserLauncher.startMyoChooser(this);
                 } else {
                     Log.i(TAG, "Location permission denied.");
+                }
+            }
+            case REQUEST_DRAWING_RIGHTS: {
+                if (isPermissionGranted((grantResults))) {
+                    PointerInitializer.initializePointer();
+                }
+                else {
+                    Log.i(TAG, "ALERT_WINDOW permission denied.");
                 }
             }
         }

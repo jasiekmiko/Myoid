@@ -60,4 +60,5 @@
 
     <string name="pref_title_vibrate">Vibrate</string>
     <string name="title_activity_status">StatusActivity</string>
+    <string name="startCursorButtonLabel">Start Cursor</string>
 </resources>

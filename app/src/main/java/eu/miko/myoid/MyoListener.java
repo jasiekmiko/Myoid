@@ -8,12 +8,14 @@ import android.widget.Toast;
 import com.thalmic.myo.AbstractDeviceListener;
 import com.thalmic.myo.Myo;
 import com.thalmic.myo.Pose;
+import com.thalmic.myo.Quaternion;
+import com.thalmic.myo.XDirection;
 
 public class MyoListener extends AbstractDeviceListener {
 
-    private final AccessibilityService mService;
+    private final MyoidAccessibilityService mService;
 
-    public MyoListener(AccessibilityService service) {
+    public MyoListener(MyoidAccessibilityService service) {
         mService = service;
     }
 
@@ -25,6 +27,21 @@ public class MyoListener extends AbstractDeviceListener {
     @Override
     public void onDisconnect(Myo myo, long timestamp) {
         shortToast("Myo Disconnected");
+    }
+
+    @Override
+    public void onOrientationData(Myo myo, long timestamp, Quaternion rotation) {
+        float roll = (float) Math.toDegrees(Quaternion.roll(rotation));
+        float pitch = (float) Math.toDegrees(Quaternion.pitch(rotation));
+        float yaw = (float) Math.toDegrees(Quaternion.yaw(rotation));
+        // Adjust roll and pitch for the orientation of the Myo on the arm.
+        if (myo.getXDirection() == XDirection.TOWARD_ELBOW) {
+            roll *= -1;
+            pitch *= -1;
+        }
+
+        mService.moveCursor((int)roll, (int)pitch);
+
     }
 
     @Override

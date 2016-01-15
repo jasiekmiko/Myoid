@@ -8,8 +8,13 @@ public class SharedServiceResources {
     private static AbstractDeviceListener listener = null;
 
     public static Boolean hubInitialized = false;
+    public static MyoidAccessibilityService mas;
 
-    public static void initializeHub(MyoidAccessibilityService mas, String packageName) {
+    public static void registerMyoidAccessibilityService(MyoidAccessibilityService service) {
+        mas = service;
+    }
+
+    public static void initializeHub(String packageName) {
         if (!hubInitialized) {
             hubInitialized = hub.init(mas, packageName);
             hub.setLockingPolicy(Hub.LockingPolicy.STANDARD);
