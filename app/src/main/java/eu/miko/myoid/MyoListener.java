@@ -66,8 +66,8 @@ public class MyoListener extends AbstractDeviceListener {
 
     private void doWaveOutAction() {
         AccessibilityNodeInfo root = mService.getRootInActiveWindow();
-        int x = 200;
-        int y = 500;
+        int x = mService.cursorParams.x;
+        int y = mService.cursorParams.y;
         AccessibilityNodeInfo pointedAt = findChildAt(root, x, y);
         if (pointedAt != null) {
             if(pointedAt.isClickable()) pointedAt.performAction(AccessibilityNodeInfo.ACTION_CLICK);
