@@ -3,7 +3,7 @@ package eu.miko.myoid;
 import com.thalmic.myo.AbstractDeviceListener;
 import com.thalmic.myo.Hub;
 
-public class MyoHubManager {
+public class MyoHubManager implements IMyoHubManager {
     private static MyoHubManager instance;
     public static MyoHubManager getInstance() {
         if (instance == null) instance = new MyoHubManager();
@@ -17,6 +17,7 @@ public class MyoHubManager {
 
     private MyoHubManager(){}
 
+    @Override
     public void initializeHub(MyoidAccessibilityService mas, String packageName) {
         if (!hubInitialized) {
             hubInitialized = hub.init(mas, packageName);
@@ -28,6 +29,7 @@ public class MyoHubManager {
         }
     }
 
+    @Override
     public Hub getHub() {
         return hub;
     }

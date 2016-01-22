@@ -10,8 +10,7 @@ import com.thalmic.myo.Hub;
 
 public class MyoidAccessibilityService extends AccessibilityService {
     private final String TAG = "Myoid service";
-    private MyoHubManager myoHubManager = MyoHubManager.getInstance();
-
+    private IMyoHubManager myoHubManager = MyoHubManager.getInstance();
 
     @Override
     public void onCreate() {
