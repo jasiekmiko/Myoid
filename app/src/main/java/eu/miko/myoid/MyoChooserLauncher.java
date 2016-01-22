@@ -15,7 +15,7 @@ public class MyoChooserLauncher {
     private static final String TAG = "MyoChooserLauncher";
 
     public static void chooseMyo(Activity intentCaller) {
-        if (SharedServiceResources.hubInitialized) {
+        if (MyoHubManager.getInstance().hubInitialized) {
             int permissionCheck = ContextCompat.checkSelfPermission(intentCaller, Manifest.permission.ACCESS_FINE_LOCATION);
             if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
                 startMyoChooser(intentCaller);

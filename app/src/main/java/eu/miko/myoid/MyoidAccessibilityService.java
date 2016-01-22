@@ -8,16 +8,14 @@ import android.widget.Toast;
 
 import com.thalmic.myo.Hub;
 
-import static eu.miko.myoid.SharedServiceResources.getHub;
-import static eu.miko.myoid.SharedServiceResources.initializeHub;
-
 public class MyoidAccessibilityService extends AccessibilityService {
     private final String TAG = "Myoid service";
+    private MyoHubManager myoHubManager = MyoHubManager.getInstance();
 
 
     @Override
     public void onCreate() {
-        initializeHub(this, getPackageName());
+        myoHubManager.initializeHub(this, getPackageName());
         Log.i(TAG, "Service created.");
     }
 
@@ -26,7 +24,7 @@ public class MyoidAccessibilityService extends AccessibilityService {
         Toast.makeText(this, "service connected", Toast.LENGTH_LONG).show();
         Log.d(TAG, "Service connected.");
 
-        Hub hub = getHub();
+        Hub hub = myoHubManager.getHub();
         hub.attachToAdjacentMyo();
         if (hub.getConnectedDevices().isEmpty()) {
             startStatusActivity();
