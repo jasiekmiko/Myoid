@@ -11,11 +11,18 @@ import com.thalmic.myo.Hub;
 public class MyoidAccessibilityService extends AccessibilityService {
     private final String TAG = "Myoid service";
     private IMyoHubManager myoHubManager = MyoHubManager.getInstance();
+    private static MyoidAccessibilityService me;
+
+    public static MyoidAccessibilityService getMyoidService() {
+        if(me == null) throw new Error("Myoid service not created.");
+        return me;
+    }
 
     @Override
     public void onCreate() {
-        myoHubManager.initializeHub(this, getPackageName());
+        myoHubManager.initializeHub(getPackageName());
         Log.i(TAG, "Service created.");
+        me = this;
     }
 
     @Override
@@ -46,4 +53,8 @@ public class MyoidAccessibilityService extends AccessibilityService {
 
     }
 
+    @Override
+    public void onDestroy() {
+        me = null;
+    }
 }
