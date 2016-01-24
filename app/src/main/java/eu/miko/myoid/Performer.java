@@ -41,8 +41,8 @@ public class Performer {
         this.myo = myo;
     }
 
-    public Boolean execute(ActionCode actionCode, Gesture gesture) {
-        switch (actionCode) {
+    public Boolean execute(Gesture gesture) {
+        switch (gesture.getAction()) {
             case GO_HOME:
                 goHome();
                 break;

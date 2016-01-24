@@ -34,12 +34,12 @@ public class GestureResolver {
 
 
     public void resolveAcceleration(Vector3 acceleration) {
-        gesture.append(acceleration, Gesture.InputType.ACCELERATION);
+        gesture.appendAcceleration(acceleration);
         resolveGesture();
     }
 
     public void resolveGyro(Vector3 gyro) {
-        gesture.append(gyro, Gesture.InputType.GYRO);
+        gesture.appendGyro(gyro);
         resolveGesture();
     }
 
@@ -50,7 +50,7 @@ public class GestureResolver {
     private void resolveGesture() {
         switch (mode.resolveGestureState(gesture)) {
             case COMPLETE:
-                performer.execute(mode.getActionCode(gesture), gesture);
+                performer.execute(gesture);
                 gesture = new Gesture();
                 break;
             case PENDING:

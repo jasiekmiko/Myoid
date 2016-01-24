@@ -9,10 +9,28 @@ import java.util.List;
 
 public class Gesture {
     private State state;
+    private Performer.ActionCode action;
     private List<GesturePart> inputSequence = new LinkedList<>();
+    private int next = 0;
 
     public void append(Pose pose) {
+        next = 0;
         inputSequence.add(new GesturePart(pose));
+    }
+
+    public void append(Quaternion rotation) {
+        next = 0;
+        inputSequence.add(new GesturePart(rotation));
+    }
+
+    public void appendAcceleration(Vector3 acceleration) {
+        next = 0;
+        inputSequence.add(new GesturePart(acceleration, InputType.ACCELERATION));
+    }
+
+    public void appendGyro (Vector3 gyro) {
+        next = 0;
+        inputSequence.add(new GesturePart(gyro, InputType.GYRO));
     }
 
     public State getState() {
@@ -23,12 +41,24 @@ public class Gesture {
         this.state = state;
     }
 
-    public void append(Quaternion rotation) {
-        inputSequence.add(new GesturePart(rotation));
+    public InputType nextInputType() {
+        return inputSequence.get(next).type;
     }
 
-    public void append(Vector3 acceleration, InputType inputType) {
-        inputSequence.add(new GesturePart(acceleration, inputType));
+    public boolean hasNext() {
+        return next < inputSequence.size();
+    }
+
+    public Pose nextInputPose() {
+        return inputSequence.get(next).pose;
+    }
+
+    public Performer.ActionCode getAction() {
+        return action;
+    }
+
+    public void setAction(Performer.ActionCode action) {
+        this.action = action;
     }
 
     enum State {
