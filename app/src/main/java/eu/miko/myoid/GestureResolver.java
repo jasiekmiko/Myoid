@@ -1,8 +1,11 @@
 package eu.miko.myoid;
 
-import android.accessibilityservice.AccessibilityService;
-
+import com.thalmic.myo.Arm;
 import com.thalmic.myo.Pose;
+import com.thalmic.myo.Quaternion;
+import com.thalmic.myo.Vector3;
+
+import eu.miko.myoid.Errors.InvalidStateError;
 
 public class GestureResolver {
     private static GestureResolver instance;
@@ -12,24 +15,53 @@ public class GestureResolver {
         return instance;
     }
 
+    private InterfaceMode mode = new GlobalNavigationMode();
+    private Arm arm;
+    private Gesture gesture = new Gesture();
+
     private Performer performer = Performer.getInstance();
-    private AccessibilityService service = MyoidAccessibilityService.getMyoidService();
 
     public void resolvePose(Pose pose) {
-        switch (pose) {
-            case FIST:
-                service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME);
-                break;
-            case WAVE_IN:
-                service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
-                break;
-            case WAVE_OUT:
-                service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS);
-                break;
-            case FINGERS_SPREAD:
-                service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_NOTIFICATIONS);
-        }
+        gesture.append(pose);
         performer.shortToast("Pose: " + pose);
+        resolveGesture();
+    }
+
+    public void resolveOrientation(Quaternion rotation) {
+        gesture.append(rotation);
+        resolveGesture();
+    }
+
+
+    public void resolveAcceleration(Vector3 acceleration) {
+        gesture.append(acceleration, Gesture.InputType.ACCELERATION);
+        resolveGesture();
+    }
+
+    public void resolveGyro(Vector3 gyro) {
+        gesture.append(gyro, Gesture.InputType.GYRO);
+        resolveGesture();
+    }
+
+    public void setArm(Arm arm) {
+        this.arm = arm;
+    }
+
+    private void resolveGesture() {
+        switch (mode.resolveGestureState(gesture)) {
+            case COMPLETE:
+                performer.execute(mode.getActionCode(gesture), gesture);
+                gesture = new Gesture();
+                break;
+            case PENDING:
+                break;
+            case SWITCH_MODE:
+                mode = new GlobalNavigationMode();
+                //TODO figure out whether this should use a FSM implementation
+                break;
+            default:
+                throw new InvalidStateError("Gesture resolution failed.");
+        }
     }
 
 }
