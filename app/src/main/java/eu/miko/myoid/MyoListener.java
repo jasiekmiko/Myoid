@@ -7,40 +7,40 @@ import com.thalmic.myo.Quaternion;
 import com.thalmic.myo.Vector3;
 
 public class MyoListener extends AbstractDeviceListener {
-    private GestureResolver gestureResolver = GestureResolver.getInstance();
+    private InputResolver inputResolver = InputResolver.getInstance();
     private Performer performer = Performer.getInstance();
 
     @Override
     public void onConnect(Myo myo, long timestamp) {
         performer.setMyo(myo);
-        gestureResolver.setArm(myo.getArm());
+        inputResolver.setArm(myo.getArm());
         performer.shortToast("Myo Connected");
     }
 
     @Override
     public void onDisconnect(Myo myo, long timestamp) {
         performer.setMyo(null);
-        gestureResolver.setArm(null);
+        inputResolver.setArm(null);
         performer.shortToast("Myo Disconnected");
     }
 
     @Override
     public void onPose(Myo myo, long timestamp, Pose pose) {
-        gestureResolver.resolvePose(pose);
+        inputResolver.resolvePose(pose);
     }
 
     @Override
     public void onOrientationData(Myo myo, long timestamp, Quaternion rotation) {
-        gestureResolver.resolveOrientation(rotation);
+        inputResolver.resolveOrientation(rotation);
     }
 
     @Override
     public void onAccelerometerData(Myo myo, long timestamp, Vector3 accel) {
-        gestureResolver.resolveAcceleration(accel);
+        inputResolver.resolveAcceleration(accel);
     }
 
     @Override
     public void onGyroscopeData(Myo myo, long timestamp, Vector3 gyro) {
-        gestureResolver.resolveGyro(gyro);
+        inputResolver.resolveGyro(gyro);
     }
 }

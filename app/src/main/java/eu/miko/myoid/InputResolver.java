@@ -7,11 +7,11 @@ import com.thalmic.myo.Vector3;
 
 import eu.miko.myoid.Errors.InvalidStateError;
 
-public class GestureResolver {
-    private static GestureResolver instance;
-    private GestureResolver() {}
-    public static GestureResolver getInstance() {
-        if (instance == null) instance = new GestureResolver();
+public class InputResolver {
+    private static InputResolver instance;
+    private InputResolver() {}
+    public static InputResolver getInstance() {
+        if (instance == null) instance = new InputResolver();
         return instance;
     }
 

@@ -1,5 +1,7 @@
 package eu.miko.myoid;
 
+import com.thalmic.myo.Pose;
+
 import static eu.miko.myoid.Performer.ActionCode.GO_BACK;
 import static eu.miko.myoid.Performer.ActionCode.GO_HOME;
 import static eu.miko.myoid.Performer.ActionCode.OPEN_NOTIFICATIONS;
@@ -10,12 +12,11 @@ public class GlobalNavigationMode implements InterfaceMode {
     @Override
     public Gesture.State resolveGestureState(Gesture gesture) {
         Gesture.State state = gesture.getState();
+        Pose currentPose = null;
+        Pose lastSeenPose = null;
         while (gesture.hasNext()) {
             switch (gesture.nextInputType()) {
                 case POSE:
-                    state = Gesture.State.COMPLETE;
-                    gesture.setState(state);
-
                     resolveSinglePoseGesture(gesture);
                     break;
                 case ACCELERATION:
@@ -33,6 +34,7 @@ public class GlobalNavigationMode implements InterfaceMode {
         switch (gesture.nextInputPose()) {
             case FIST:
                 gesture.setAction(GO_HOME);
+                gesture.setState(Gesture.State.COMPLETE);
                 break;
             case WAVE_IN:
                 gesture.setAction(GO_BACK);
@@ -42,6 +44,8 @@ public class GlobalNavigationMode implements InterfaceMode {
                 break;
             case FINGERS_SPREAD:
                 gesture.setAction(OPEN_NOTIFICATIONS);
+            case UNKNOWN:
+                gesture.setState(Gesture.State.COMPLETE);
                 break;
         }
     }
