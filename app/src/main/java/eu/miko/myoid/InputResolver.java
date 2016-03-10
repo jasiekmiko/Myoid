@@ -1,5 +1,9 @@
 package eu.miko.myoid;
 
+import android.support.annotation.NonNull;
+
+import com.github.zevada.stateful.StateMachine;
+import com.github.zevada.stateful.StateMachineBuilder;
 import com.thalmic.myo.Arm;
 import com.thalmic.myo.Pose;
 import com.thalmic.myo.Quaternion;
@@ -15,10 +19,12 @@ public class InputResolver {
         return instance;
     }
 
+    private StateMachine<State, Event> myoidStateMahine = createMyoidStateMachine();
+
     private InterfaceMode mode = new GlobalNavigationMode();
+
     private Arm arm;
     private Gesture gesture = new Gesture();
-
     private Performer performer = Performer.getInstance();
 
     public void resolvePose(Pose pose) {
@@ -32,11 +38,11 @@ public class InputResolver {
         resolveGesture();
     }
 
-
     public void resolveAcceleration(Vector3 acceleration) {
         gesture.appendAcceleration(acceleration);
         resolveGesture();
     }
+
 
     public void resolveGyro(Vector3 gyro) {
         gesture.appendGyro(gyro);
@@ -62,6 +68,26 @@ public class InputResolver {
             default:
                 throw new InvalidStateError("Gesture resolution failed.");
         }
+    }
+
+    @NonNull
+    private StateMachine<State, Event> createMyoidStateMachine() {
+        return new StateMachineBuilder<State, Event>(State.Mouse)
+                .addTransition(State.Mouse, Event.Fist, State.Tapped)
+                .addTransition(State.Tapped, Event.Relax, State.Mouse)
+                .addTransition(State.Mouse, Event.Left, State.Mouse)
+                .addTransition(State.Mouse, Event.Right, State.Mouse)
+                .addTransition(State.Mouse, Event.Up, State.Mouse)
+                .addTransition(State.Mouse, Event.Down, State.Mouse)
+                .addTransition(State.Mouse, Event.Spread, State.OptionsEntryFromMouse)
+                .addTransition(State.OptionsEntryFromMouse, Event.Relax, State.Mouse)
+                .onEnter(State.OptionsEntryFromMouse, openOptions())
+                .build();
+    }
+
+    private Runnable openOptions() {
+        performer.shortToast("Options time!");
+        return null;
     }
 
 }
