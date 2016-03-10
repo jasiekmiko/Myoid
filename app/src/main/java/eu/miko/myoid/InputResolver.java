@@ -19,7 +19,7 @@ public class InputResolver {
         return instance;
     }
 
-    private StateMachine<State, Event> myoidStateMahine = createMyoidStateMachine();
+    private StateMachine<State, Event> myoidStateMachine = createMyoidStateMachine();
 
     private InterfaceMode mode = new GlobalNavigationMode();
 
@@ -28,9 +28,8 @@ public class InputResolver {
     private Performer performer = Performer.getInstance();
 
     public void resolvePose(Pose pose) {
-        gesture.append(pose);
+        myoidStateMachine.apply(Event.fromPose(pose));
         performer.shortToast("Pose: " + pose);
-        resolveGesture();
     }
 
     public void resolveOrientation(Quaternion rotation) {
@@ -72,16 +71,18 @@ public class InputResolver {
 
     @NonNull
     private StateMachine<State, Event> createMyoidStateMachine() {
-        return new StateMachineBuilder<State, Event>(State.Mouse)
-                .addTransition(State.Mouse, Event.Fist, State.Tapped)
-                .addTransition(State.Tapped, Event.Relax, State.Mouse)
-                .addTransition(State.Mouse, Event.Left, State.Mouse)
-                .addTransition(State.Mouse, Event.Right, State.Mouse)
-                .addTransition(State.Mouse, Event.Up, State.Mouse)
-                .addTransition(State.Mouse, Event.Down, State.Mouse)
-                .addTransition(State.Mouse, Event.Spread, State.OptionsEntryFromMouse)
-                .addTransition(State.OptionsEntryFromMouse, Event.Relax, State.Mouse)
-                .onEnter(State.OptionsEntryFromMouse, openOptions())
+        return new StateMachineBuilder<State, Event>(State.LOCKED)
+                .addTransition(State.LOCKED, Event.DOUBLT_TAP, State.MOUSE)
+                .addTransition(State.MOUSE, Event.DOUBLT_TAP, State.MOUSE)
+                .addTransition(State.MOUSE, Event.FIST, State.TAPPED)
+                .addTransition(State.TAPPED, Event.RELAX, State.MOUSE)
+                .addTransition(State.MOUSE, Event.LEFT, State.MOUSE)
+                .addTransition(State.MOUSE, Event.RIGHT, State.MOUSE)
+                .addTransition(State.MOUSE, Event.UP, State.MOUSE)
+                .addTransition(State.MOUSE, Event.DOWN, State.MOUSE)
+                .addTransition(State.MOUSE, Event.SPREAD, State.OPTIONS_ENTRY_FROM_MOUSE)
+                .addTransition(State.OPTIONS_ENTRY_FROM_MOUSE, Event.RELAX, State.MOUSE)
+                .onEnter(State.OPTIONS_ENTRY_FROM_MOUSE, openOptions())
                 .build();
     }
 

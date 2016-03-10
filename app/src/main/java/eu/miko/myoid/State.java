@@ -4,20 +4,21 @@ package eu.miko.myoid;
  * Created by jasie on 10/03/2016.
  */
 public enum State {
-    Mouse,
-    Tapped,
-    OptionsEntryFromMouse,
-    Optoins,
-    OptionsEntryFromMedia,
-    SystemVolume,
-    QuickSettings,
-    Media,
-    MeidaVolume,
-    Previous,
-    Next,
-    PhoneCalling,
-    InCall,
-    CallVolume,
-    Camera,
-    CameraZoom
+    MOUSE,
+    TAPPED,
+    OPTIONS_ENTRY_FROM_MOUSE,
+    OPTIONS,
+    OPTIONS_ENTRY_FROM_MEDIA,
+    SYSTEM_VOLUME,
+    QUICK_SETTINGS,
+    MEDIA,
+    MEIDA_VOLUME,
+    PREVIOUS,
+    NEXT,
+    PHONE_CALLING,
+    IN_CALL,
+    CALL_VOLUME,
+    CAMERA,
+    CAMERA_ZOOM,
+    LOCKED
 }
