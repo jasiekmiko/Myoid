@@ -9,7 +9,6 @@ import com.thalmic.myo.Pose;
 import com.thalmic.myo.Quaternion;
 import com.thalmic.myo.Vector3;
 
-import eu.miko.myoid.Errors.InvalidStateError;
 import eu.miko.myoid.StateMachine.Event;
 import eu.miko.myoid.StateMachine.Mode;
 import eu.miko.myoid.StateMachine.State;
