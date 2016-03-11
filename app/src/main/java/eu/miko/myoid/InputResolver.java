@@ -10,6 +10,9 @@ import com.thalmic.myo.Quaternion;
 import com.thalmic.myo.Vector3;
 
 import eu.miko.myoid.Errors.InvalidStateError;
+import eu.miko.myoid.StateMachine.Event;
+import eu.miko.myoid.StateMachine.Mode;
+import eu.miko.myoid.StateMachine.State;
 
 public class InputResolver {
     private static InputResolver instance;
@@ -20,69 +23,59 @@ public class InputResolver {
     }
 
     private StateMachine<State, Event> myoidStateMachine = createMyoidStateMachine();
-
-    private InterfaceMode mode = new GlobalNavigationMode();
-
     private Arm arm;
-    private Gesture gesture = new Gesture();
+    private Quaternion currentRotation = null;
+    private Vector3 currentAcceleration = null;
+    private Vector3 currentGyro = null;
     private Performer performer = Performer.getInstance();
 
     public void resolvePose(Pose pose) {
-        myoidStateMachine.apply(Event.fromPose(pose));
+        getCurrentMode().poseEffect(pose);
+        myoidStateMachine.apply(Event.fromPose(pose, arm, currentRotation));
         performer.shortToast("Pose: " + pose);
     }
 
     public void resolveOrientation(Quaternion rotation) {
-        gesture.append(rotation);
-        resolveGesture();
+        Event resultingEvent = getCurrentMode().resolveOrientation(rotation);
+        if(resultingEvent != null) myoidStateMachine.apply(resultingEvent);
     }
 
     public void resolveAcceleration(Vector3 acceleration) {
-        gesture.appendAcceleration(acceleration);
-        resolveGesture();
+        Event resultingEvent = getCurrentMode().appendAcceleration(acceleration);
+        if(resultingEvent != null) myoidStateMachine.apply(resultingEvent);
     }
 
-
     public void resolveGyro(Vector3 gyro) {
-        gesture.appendGyro(gyro);
-        resolveGesture();
+        Event resultingEvent = getCurrentMode().appendGyro(gyro);
+        if(resultingEvent != null) myoidStateMachine.apply(resultingEvent);
     }
 
     public void setArm(Arm arm) {
         this.arm = arm;
     }
 
-    private void resolveGesture() {
-        switch (mode.resolveGestureState(gesture)) {
-            case COMPLETE:
-                performer.execute(gesture);
-                gesture = new Gesture();
-                break;
-            case PENDING:
-                break;
-            case SWITCH_MODE:
-                mode = new GlobalNavigationMode();
-                //TODO figure out whether this should use a FSM implementation
-                break;
-            default:
-                throw new InvalidStateError("Gesture resolution failed.");
-        }
+    private Mode getCurrentMode() {
+        return myoidStateMachine.getState().getMode();
     }
 
     @NonNull
     private StateMachine<State, Event> createMyoidStateMachine() {
         return new StateMachineBuilder<State, Event>(State.LOCKED)
+                //LOCKED
                 .addTransition(State.LOCKED, Event.DOUBLT_TAP, State.MOUSE)
+                //MOUSE
                 .addTransition(State.MOUSE, Event.DOUBLT_TAP, State.MOUSE)
                 .addTransition(State.MOUSE, Event.FIST, State.TAPPED)
-                .addTransition(State.TAPPED, Event.RELAX, State.MOUSE)
                 .addTransition(State.MOUSE, Event.LEFT, State.MOUSE)
                 .addTransition(State.MOUSE, Event.RIGHT, State.MOUSE)
                 .addTransition(State.MOUSE, Event.UP, State.MOUSE)
                 .addTransition(State.MOUSE, Event.DOWN, State.MOUSE)
                 .addTransition(State.MOUSE, Event.SPREAD, State.OPTIONS_ENTRY_FROM_MOUSE)
-                .addTransition(State.OPTIONS_ENTRY_FROM_MOUSE, Event.RELAX, State.MOUSE)
+                //OPTIONS_ENTRY_FROM_MOUSE
                 .onEnter(State.OPTIONS_ENTRY_FROM_MOUSE, openOptions())
+                .addTransition(State.OPTIONS_ENTRY_FROM_MOUSE, Event.RELAX, State.MOUSE)
+                //TAPPED
+                .addTransition(State.TAPPED, Event.RELAX, State.MOUSE)
                 .build();
     }
 

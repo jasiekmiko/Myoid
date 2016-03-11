@@ -1,6 +1,8 @@
-package eu.miko.myoid;
+package eu.miko.myoid.StateMachine;
 
+import com.thalmic.myo.Arm;
 import com.thalmic.myo.Pose;
+import com.thalmic.myo.Quaternion;
 
 /**
  * Created by jasie on 10/03/2016.
@@ -17,7 +19,7 @@ public enum Event {
     Z_AXIS,
     OPTION_SELECTED;
 
-    public static Event fromPose(Pose pose) {
+    public static Event fromPose(Pose pose, Arm arm, Quaternion currentRotation) {
         switch (pose) {
             case REST:
                 return RELAX;
