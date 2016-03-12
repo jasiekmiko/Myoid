@@ -18,25 +18,4 @@ public enum Event {
     DOUBLT_TAP,
     Z_AXIS,
     OPTION_SELECTED;
-
-    public static Event fromPose(Pose pose, Arm arm, Quaternion currentRotation) {
-        switch (pose) {
-            case REST:
-                return RELAX;
-            case FIST:
-                return FIST;
-            //TODO: arm-rotation based move
-            case WAVE_IN:
-                return DOWN;
-            case WAVE_OUT:
-                return UP;
-            case FINGERS_SPREAD:
-                return SPREAD;
-            case DOUBLE_TAP:
-                return DOUBLT_TAP;
-            case UNKNOWN:
-                return RELAX;
-        }
-        return null;
-    }
 }

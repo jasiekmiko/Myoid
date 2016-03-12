@@ -9,12 +9,33 @@ class Mouse extends Mode {
 
     @Override
     public Event resolvePose(Pose pose) {
-        return null;
+        Event event = null;
+        switch(pose) {
+            case REST:
+                break;
+            case FIST:
+                performer.mouseTap();
+                break;
+            case WAVE_IN:
+                //TODO: distinguish between down, top, left and right
+                break;
+            case WAVE_OUT:
+                break;
+            case FINGERS_SPREAD:
+                event = Event.SPREAD;
+                break;
+            case DOUBLE_TAP:
+                event = Event.DOUBLT_TAP;
+                break;
+            case UNKNOWN:
+                break;
+        }
+        return event;
     }
 
     @Override
     public Event resolveOrientation(Quaternion rotation) {
-        float roll = (float) Math.toDegrees(Quaternion.roll(rotation));
+        //float roll = (float) Math.toDegrees(Quaternion.roll(rotation));
         float pitch = (float) Math.toDegrees(Quaternion.pitch(rotation));
         float yaw = (float) Math.toDegrees(Quaternion.yaw(rotation));
 

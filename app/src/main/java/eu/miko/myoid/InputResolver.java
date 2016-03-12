@@ -25,14 +25,11 @@ public class InputResolver {
 
     private StateMachine<State, Event> myoidStateMachine = createMyoidStateMachine();
     private Arm arm;
-    private Quaternion currentRotation = null;
-    private Vector3 currentAcceleration = null;
-    private Vector3 currentGyro = null;
     private Performer performer = Performer.getInstance();
 
     public void resolvePose(Pose pose) {
-        getCurrentMode().resolvePose(pose);
-        myoidStateMachine.apply(Event.fromPose(pose, arm, currentRotation));
+        Event resultingEvent = getCurrentMode().resolvePose(pose);
+        myoidStateMachine.apply(resultingEvent);
         performer.shortToast("Pose: " + pose);
     }
 

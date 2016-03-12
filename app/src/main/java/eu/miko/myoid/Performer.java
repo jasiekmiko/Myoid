@@ -5,6 +5,7 @@ import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.view.Gravity;
 import android.view.WindowManager;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -97,5 +98,28 @@ public class Performer {
 
     public void hideCursor() {
         if (cursor != null) mas.getWindowManager().removeView(cursor);
+    }
+
+    public void mouseTap() {
+        AccessibilityNodeInfo root = mas.getRootInActiveWindow();
+        AccessibilityNodeInfo scrollableView = findScrollableView(root);
+        if (scrollableView != null) scrollableView.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD);
+        else shortToast("scrollableView null");
+    }
+
+    private AccessibilityNodeInfo findScrollableView(AccessibilityNodeInfo nodeInfo) {
+        if (nodeInfo == null) return null;
+        if (nodeInfo.isScrollable()) return nodeInfo;
+        else if (nodeInfo.getChildCount() > 0) {
+            int childCount = nodeInfo.getChildCount();
+            int childIndex = 0;
+            AccessibilityNodeInfo result = null;
+            while (result == null && childIndex < childCount) {
+                result = findScrollableView(nodeInfo.getChild(childIndex));
+                childIndex += 1;
+            }
+            return result;
+        }
+        else return null;
     }
 }
