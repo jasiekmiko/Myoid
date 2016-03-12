@@ -43,7 +43,7 @@ public class StatusActivity extends Activity {
         });
 
         TextView accessibilityStatus = (TextView) findViewById(R.id.accessibilityStatus);
-        accessibilityStatus.setText(MyoidAccessibilityService.getMyoidService().serviceConnected ? R.string.accessibilityStatusConnected : R.string.accessibilityStatusNotConnected);
+        accessibilityStatus.setText(MyoidAccessibilityService.getMyoidService().isServiceConnected() ? R.string.accessibilityStatusConnected : R.string.accessibilityStatusNotConnected);
     }
 
     @Override

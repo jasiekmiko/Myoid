@@ -19,7 +19,7 @@ import static java.lang.Math.min;
 
 public class MyoidAccessibilityService extends AccessibilityService {
     private final String TAG = "Myoid service";
-    private IMyoHubManager myoHubManager = MyoHubManager.getInstance();
+    private IMyoHubManager myoHubManager;
     private static MyoidAccessibilityService me;
     private WindowManager windowManager;
     private ImageView cursor;
@@ -29,15 +29,20 @@ public class MyoidAccessibilityService extends AccessibilityService {
     protected boolean serviceConnected = false;
 
     public static MyoidAccessibilityService getMyoidService() {
-        if (me == null) throw new Error("Myoid service not created.");
+        //if (me == null) throw new Error("Myoid service not created.");
         return me;
+    }
+
+    public static boolean isServiceConnected() {
+        return me != null && me.serviceConnected;
     }
 
     @Override
     public void onCreate() {
+        me = this;
+        myoHubManager = MyoHubManager.getInstance();
         myoHubManager.initializeHub(getPackageName());
         Log.i(TAG, "Service created.");
-        me = this;
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
 
         cursor = new ImageView(this);

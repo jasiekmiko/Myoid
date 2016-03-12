@@ -27,10 +27,11 @@ dependencies {
             // this must point to the myorepository distributed with the Myo SDK
             url '../myorepository'
         }
+
     }
     compile 'com.android.support:appcompat-v7:23.1.1'
     compile 'com.android.support:support-v4:23.1.1'
     compile 'com.thalmic:myosdk:0.10.+@aar'
     compile 'com.android.support:design:23.1.1'
-    compile 'com.github.zevada:stateful:1.0.0'
+    compile project(':libraries:stateful')
 }

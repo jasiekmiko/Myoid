@@ -71,16 +71,16 @@ public class InputResolver {
                 .addTransition(State.MOUSE, Event.DOWN, State.MOUSE)
                 .addTransition(State.MOUSE, Event.SPREAD, State.OPTIONS_ENTRY_FROM_MOUSE)
                 //OPTIONS_ENTRY_FROM_MOUSE
-                .onEnter(State.OPTIONS_ENTRY_FROM_MOUSE, openOptions())
+                .onEnter(State.OPTIONS_ENTRY_FROM_MOUSE, new Runnable() {
+                    @Override
+                    public void run() {
+                        performer.shortToast("Options time!");
+                    }
+                })
                 .addTransition(State.OPTIONS_ENTRY_FROM_MOUSE, Event.RELAX, State.MOUSE)
                 //TAPPED
                 .addTransition(State.TAPPED, Event.RELAX, State.MOUSE)
                 .build();
-    }
-
-    private Runnable openOptions() {
-        performer.shortToast("Options time!");
-        return null;
     }
 
 }
