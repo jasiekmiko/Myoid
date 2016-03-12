@@ -80,7 +80,7 @@ public class MyoidAccessibilityService extends AccessibilityService {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        performer.destroyCursor();
+        performer.hideCursor();
         serviceConnected = false;
         me = null;
     }

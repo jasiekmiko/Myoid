@@ -36,26 +36,26 @@ public enum State {
             final private String TAG = "UnimplementedMode";
 
             @Override
-            public Event poseEffect(Pose pose){
-                Log.w(TAG, "poseEffect called on an unimplemented Event");
+            public Event resolvePose(Pose pose){
+                Log.w(TAG, "resolvePose called on an unimplemented Event");
                 return null;
             }
 
             @Override
             public Event resolveOrientation(Quaternion rotation) {
-                Log.w(TAG, "poseEffect called on an unimplemented Event");
+                Log.w(TAG, "resolveOrientation called on an unimplemented Event");
                 return null;
             }
 
             @Override
-            public Event appendAcceleration(Vector3 acceleration) {
-                Log.w(TAG, "poseEffect called on an unimplemented Event");
+            public Event resolveAcceleration(Vector3 acceleration) {
+                Log.w(TAG, "resolveAcceleration called on an unimplemented Event");
                 return null;
             }
 
             @Override
-            public Event appendGyro(Vector3 gyro) {
-                Log.w(TAG, "poseEffect called on an unimplemented Event");
+            public Event resolveGyro(Vector3 gyro) {
+                Log.w(TAG, "resolveGyro called on an unimplemented Event");
                 return null;
             }
         };

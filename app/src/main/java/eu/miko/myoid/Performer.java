@@ -56,12 +56,6 @@ public class Performer {
         mas.performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME);
     }
 
-    public void displayCursor() {
-        WindowManager windowManager = mas.getWindowManager();
-        windowManager.addView(cursor, cursorParams);
-        cursorInitialized = true;
-    }
-
     public void initCursor(Point screenSize) {
         this.screenSize = screenSize;
         cursor = new ImageView(mas);
@@ -79,6 +73,11 @@ public class Performer {
         cursorParams.y = 100;
     }
 
+    public void displayCursor() {
+        WindowManager windowManager = mas.getWindowManager();
+        windowManager.addView(cursor, cursorParams);
+        cursorInitialized = true;
+    }
 
     public void moveCursor(int x, int y) {
         if (cursorInitialized) {
@@ -96,7 +95,7 @@ public class Performer {
         return max(0, min(x, screenSize.x));
     }
 
-    public void destroyCursor() {
+    public void hideCursor() {
         if (cursor != null) mas.getWindowManager().removeView(cursor);
     }
 }

@@ -1,6 +1,7 @@
 package eu.miko.myoid;
 
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.github.zevada.stateful.StateMachine;
 import com.github.zevada.stateful.StateMachineBuilder;
@@ -14,6 +15,7 @@ import eu.miko.myoid.StateMachine.Mode;
 import eu.miko.myoid.StateMachine.State;
 
 public class InputResolver {
+    private static final String TAG = InputResolver.class.getName();
     private static InputResolver instance;
     private InputResolver() {}
     public static InputResolver getInstance() {
@@ -29,7 +31,7 @@ public class InputResolver {
     private Performer performer = Performer.getInstance();
 
     public void resolvePose(Pose pose) {
-        getCurrentMode().poseEffect(pose);
+        getCurrentMode().resolvePose(pose);
         myoidStateMachine.apply(Event.fromPose(pose, arm, currentRotation));
         performer.shortToast("Pose: " + pose);
     }
@@ -40,12 +42,12 @@ public class InputResolver {
     }
 
     public void resolveAcceleration(Vector3 acceleration) {
-        Event resultingEvent = getCurrentMode().appendAcceleration(acceleration);
+        Event resultingEvent = getCurrentMode().resolveAcceleration(acceleration);
         if(resultingEvent != null) myoidStateMachine.apply(resultingEvent);
     }
 
     public void resolveGyro(Vector3 gyro) {
-        Event resultingEvent = getCurrentMode().appendGyro(gyro);
+        Event resultingEvent = getCurrentMode().resolveGyro(gyro);
         if(resultingEvent != null) myoidStateMachine.apply(resultingEvent);
     }
 
@@ -61,8 +63,10 @@ public class InputResolver {
     private StateMachine<State, Event> createMyoidStateMachine() {
         return new StateMachineBuilder<State, Event>(State.LOCKED)
                 //LOCKED
+                .onEnter(State.LOCKED, runnableEntryNotifier("Locked"))
                 .addTransition(State.LOCKED, Event.DOUBLT_TAP, State.MOUSE)
                 //MOUSE
+                .onEnter(State.MOUSE, runnableEntryNotifier("Mouse"))
                 .addTransition(State.MOUSE, Event.DOUBLT_TAP, State.LOCKED)
                 .addTransition(State.MOUSE, Event.FIST, State.TAPPED)
                 .addTransition(State.MOUSE, Event.SPREAD, State.OPTIONS_ENTRY_FROM_MOUSE)
@@ -70,6 +74,7 @@ public class InputResolver {
                 .onEnter(State.OPTIONS_ENTRY_FROM_MOUSE, new Runnable() {
                     @Override
                     public void run() {
+                        Log.d(TAG, String.format("%s state entered.", "optionsEntry"));
                         performer.shortToast("Options time!");
                     }
                 })
@@ -77,6 +82,15 @@ public class InputResolver {
                 //TAPPED
                 .addTransition(State.TAPPED, Event.RELAX, State.MOUSE)
                 .build();
+    }
+
+    private Runnable runnableEntryNotifier(final String newState) {
+        return new Runnable() {
+            @Override
+            public void run() {
+                Log.d(TAG, String.format("%s state entered.", newState));
+            }
+        };
     }
 
 }

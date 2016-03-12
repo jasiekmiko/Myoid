@@ -7,7 +7,7 @@ import com.thalmic.myo.Vector3;
 class Tapped extends  Mode {
 
     @Override
-    public Event poseEffect(Pose pose) {
+    public Event resolvePose(Pose pose) {
         if (pose == Pose.DOUBLE_TAP) {
             performer.unlockMyo();
         }
@@ -20,12 +20,12 @@ class Tapped extends  Mode {
     }
 
     @Override
-    public Event appendAcceleration(Vector3 acceleration) {
+    public Event resolveAcceleration(Vector3 acceleration) {
         return null;
     }
 
     @Override
-    public Event appendGyro(Vector3 gyro) {
+    public Event resolveGyro(Vector3 gyro) {
         return null;
     }
 }
