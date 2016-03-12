@@ -63,12 +63,8 @@ public class InputResolver {
                 //LOCKED
                 .addTransition(State.LOCKED, Event.DOUBLT_TAP, State.MOUSE)
                 //MOUSE
-                .addTransition(State.MOUSE, Event.DOUBLT_TAP, State.MOUSE)
+                .addTransition(State.MOUSE, Event.DOUBLT_TAP, State.LOCKED)
                 .addTransition(State.MOUSE, Event.FIST, State.TAPPED)
-                .addTransition(State.MOUSE, Event.LEFT, State.MOUSE)
-                .addTransition(State.MOUSE, Event.RIGHT, State.MOUSE)
-                .addTransition(State.MOUSE, Event.UP, State.MOUSE)
-                .addTransition(State.MOUSE, Event.DOWN, State.MOUSE)
                 .addTransition(State.MOUSE, Event.SPREAD, State.OPTIONS_ENTRY_FROM_MOUSE)
                 //OPTIONS_ENTRY_FROM_MOUSE
                 .onEnter(State.OPTIONS_ENTRY_FROM_MOUSE, new Runnable() {

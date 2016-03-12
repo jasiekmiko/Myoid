@@ -21,13 +21,11 @@ public final class StateMachine<State extends Enum<State>, EventType extends Enu
   public void apply(EventType eventType) {
     Node<State, EventType> nextNode = root.getNeighbor(eventType);
 
-    if (nextNode == null) {
-      throw new UnexpectedEventTypeException(root.getState(), eventType);
+    if (nextNode != null) {
+      root.onExit();
+      root = nextNode;
+      root.onEnter();
     }
-
-    root.onExit();
-    root = nextNode;
-    root.onEnter();
   }
 
   /**

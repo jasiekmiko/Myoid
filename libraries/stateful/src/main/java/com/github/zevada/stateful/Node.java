@@ -31,7 +31,7 @@ final class Node<State extends Enum<State>, EventType extends Enum<EventType>> {
   }
 
   public void onExit() {
-    for (Runnable exitListner : onExitListeners) exitListner.run();
+    for (Runnable exitListener : onExitListeners) exitListener.run();
   }
 
   public void addNeighbor(EventType eventType, Node<State, EventType> destination) {
