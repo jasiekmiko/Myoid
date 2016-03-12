@@ -1,23 +1,34 @@
 package eu.miko.myoid;
 
 import android.accessibilityservice.AccessibilityService;
+import android.graphics.PixelFormat;
+import android.graphics.Point;
+import android.view.Gravity;
+import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.thalmic.myo.Myo;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+
 public class Performer {
     private static Performer instance;
-    private Performer() {}
     public static Performer getInstance() {
         if (instance == null) instance = new Performer();
         return instance;
     }
 
     private Myo myo;
-    private AccessibilityService service = MyoidAccessibilityService.getMyoidService();
+    private Point screenSize;
+    private ImageView cursor;
+    private WindowManager.LayoutParams cursorParams;
+    private boolean cursorInitialized = false;
+    private MyoidAccessibilityService mas = MyoidAccessibilityService.getMyoidService();
 
     public void shortToast(String text) {
-        Toast.makeText(service, text, Toast.LENGTH_SHORT).show();
+        Toast.makeText(mas, text, Toast.LENGTH_SHORT).show();
     }
 
     public void setMyo(Myo myo) {
@@ -30,18 +41,62 @@ public class Performer {
     }
 
     public void openNotifications() {
-        service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_NOTIFICATIONS);
+        mas.performGlobalAction(AccessibilityService.GLOBAL_ACTION_NOTIFICATIONS);
     }
 
     public void openRecents() {
-        service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS);
+        mas.performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS);
     }
 
     public void goBack() {
-        service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
+        mas.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
     }
 
     public void goHome() {
-        service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME);
+        mas.performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME);
+    }
+
+    public void displayCursor() {
+        WindowManager windowManager = mas.getWindowManager();
+        windowManager.addView(cursor, cursorParams);
+        cursorInitialized = true;
+    }
+
+    public void initCursor(Point screenSize) {
+        this.screenSize = screenSize;
+        cursor = new ImageView(mas);
+        cursor.setImageResource(R.mipmap.ic_launcher);
+
+        cursorParams = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                PixelFormat.TRANSLUCENT);
+
+        cursorParams.gravity = Gravity.TOP | Gravity.LEFT;
+        cursorParams.x = 0;
+        cursorParams.y = 100;
+    }
+
+
+    public void moveCursor(int x, int y) {
+        if (cursorInitialized) {
+            cursorParams.x = keepOnScreenX(cursorParams.x + x);
+            cursorParams.y = keepOnScreenY(cursorParams.y + y);
+            mas.getWindowManager().updateViewLayout(cursor, cursorParams);
+        }
+    }
+
+    private int keepOnScreenY(int y) {
+        return max(0, min(y, screenSize.y));
+    }
+
+    private int keepOnScreenX(int x) {
+        return max(0, min(x, screenSize.x));
+    }
+
+    public void destroyCursor() {
+        if (cursor != null) mas.getWindowManager().removeView(cursor);
     }
 }

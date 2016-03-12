@@ -2,14 +2,11 @@ package eu.miko.myoid;
 
 import android.accessibilityservice.AccessibilityService;
 import android.content.Intent;
-import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.util.Log;
 import android.view.Display;
-import android.view.Gravity;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.thalmic.myo.Hub;
@@ -18,19 +15,22 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 
 public class MyoidAccessibilityService extends AccessibilityService {
-    private final String TAG = "Myoid service";
-    private IMyoHubManager myoHubManager;
     private static MyoidAccessibilityService me;
+    public static MyoidAccessibilityService getMyoidService() {
+        if (me == null) throw new Error ("Myoid service not created.");
+        return me;
+    }
+
+    private final String TAG = "Myoid service";
+
+    private IMyoHubManager myoHubManager;
     private WindowManager windowManager;
-    private ImageView cursor;
-    private WindowManager.LayoutParams cursorParams;
-    private Point screenSize;
-    private boolean cursorInitialized = false;
+    private Performer performer;
+
     protected boolean serviceConnected = false;
 
-    public static MyoidAccessibilityService getMyoidService() {
-        //if (me == null) throw new Error("Myoid service not created.");
-        return me;
+    public WindowManager getWindowManager() {
+        return windowManager;
     }
 
     public static boolean isServiceConnected() {
@@ -40,28 +40,18 @@ public class MyoidAccessibilityService extends AccessibilityService {
     @Override
     public void onCreate() {
         me = this;
+        windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+
         myoHubManager = MyoHubManager.getInstance();
         myoHubManager.initializeHub(getPackageName());
         Log.i(TAG, "Service created.");
-        windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
-
-        cursor = new ImageView(this);
-        cursor.setImageResource(R.mipmap.ic_launcher);
-
-        cursorParams = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-                PixelFormat.TRANSLUCENT);
-
-        cursorParams.gravity = Gravity.TOP | Gravity.LEFT;
-        cursorParams.x = 0;
-        cursorParams.y = 100;
 
         Display display = windowManager.getDefaultDisplay();
-        screenSize = new Point();
+        Point screenSize = new Point();
         display.getSize(screenSize);
+        performer = Performer.getInstance();
+        performer.initCursor(screenSize);
+
     }
 
     @Override
@@ -71,7 +61,7 @@ public class MyoidAccessibilityService extends AccessibilityService {
 
         Hub hub = myoHubManager.getHub();
         hub.attachToAdjacentMyo();
-        if (hub.getConnectedDevices().isEmpty() || !cursorInitialized) {
+        if (hub.getConnectedDevices().isEmpty()) {
             startStatusActivity();
         }
         serviceConnected = true;
@@ -90,31 +80,9 @@ public class MyoidAccessibilityService extends AccessibilityService {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (cursor != null) windowManager.removeView(cursor);
-        me = null;
+        performer.destroyCursor();
         serviceConnected = false;
-    }
-
-    public void initializeCursor() {
-        WindowManager windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
-        windowManager.addView(cursor, cursorParams);
-        cursorInitialized = true;
-    }
-
-    public void moveCursor(int x, int y) {
-        if (cursorInitialized) {
-            cursorParams.x = keepOnScreenX(cursorParams.x + x);
-            cursorParams.y = keepOnScreenY(cursorParams.y + y);
-            windowManager.updateViewLayout(cursor, cursorParams);
-        }
-    }
-
-    private int keepOnScreenY(int y) {
-        return max(0, min(y, screenSize.y));
-    }
-
-    private int keepOnScreenX(int x) {
-        return max(0, min(x, screenSize.x));
+        me = null;
     }
 
     private void startStatusActivity() {

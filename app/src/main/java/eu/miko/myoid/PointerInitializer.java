@@ -34,6 +34,6 @@ public class PointerInitializer {
     }
 
     public static void initializePointer() {
-        MyoidAccessibilityService.getMyoidService().initializeCursor();
+        Performer.getInstance().displayCursor();
     }
 }

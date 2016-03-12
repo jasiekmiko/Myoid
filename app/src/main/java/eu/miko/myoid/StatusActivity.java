@@ -43,7 +43,17 @@ public class StatusActivity extends Activity {
         });
 
         TextView accessibilityStatus = (TextView) findViewById(R.id.accessibilityStatus);
-        accessibilityStatus.setText(MyoidAccessibilityService.getMyoidService().isServiceConnected() ? R.string.accessibilityStatusConnected : R.string.accessibilityStatusNotConnected);
+        accessibilityStatus.setText(isServiceConnected() ? R.string.accessibilityStatusConnected : R.string.accessibilityStatusNotConnected);
+    }
+
+    private boolean isServiceConnected() {
+        MyoidAccessibilityService mas = null;
+        try {
+            mas = MyoidAccessibilityService.getMyoidService();
+        } catch (Error e) {
+            return false;
+        }
+        return mas.isServiceConnected();
     }
 
     @Override
