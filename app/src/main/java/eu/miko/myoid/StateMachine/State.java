@@ -1,12 +1,11 @@
 package eu.miko.myoid.StateMachine;
 
+import android.util.Log;
+
+import com.thalmic.myo.Pose;
 import com.thalmic.myo.Quaternion;
+import com.thalmic.myo.Vector3;
 
-import eu.miko.myoid.Performer;
-
-/**
- * Created by jasie on 10/03/2016.
- */
 public enum State {
     MOUSE(new Mouse()),
     TAPPED(new Tapped()),
@@ -24,7 +23,7 @@ public enum State {
     CALL_VOLUME,
     CAMERA,
     CAMERA_ZOOM,
-    LOCKED;
+    LOCKED(new Locked());
 
     private Mode mode;
 
@@ -33,7 +32,33 @@ public enum State {
     }
 
     State() {
-        this.mode = new Mode();
+        this.mode = new Mode() {
+            final private String TAG = "UnimplementedMode";
+
+            @Override
+            public Event poseEffect(Pose pose){
+                Log.w(TAG, "poseEffect called on an unimplemented Event");
+                return null;
+            }
+
+            @Override
+            public Event resolveOrientation(Quaternion rotation) {
+                Log.w(TAG, "poseEffect called on an unimplemented Event");
+                return null;
+            }
+
+            @Override
+            public Event appendAcceleration(Vector3 acceleration) {
+                Log.w(TAG, "poseEffect called on an unimplemented Event");
+                return null;
+            }
+
+            @Override
+            public Event appendGyro(Vector3 gyro) {
+                Log.w(TAG, "poseEffect called on an unimplemented Event");
+                return null;
+            }
+        };
     }
 
     public Mode getMode() { return mode;}

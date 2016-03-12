@@ -7,62 +7,41 @@ import com.thalmic.myo.Myo;
 
 public class Performer {
     private static Performer instance;
-    private Myo myo;
-
     private Performer() {}
     public static Performer getInstance() {
         if (instance == null) instance = new Performer();
         return instance;
     }
 
+    private Myo myo;
     private AccessibilityService service = MyoidAccessibilityService.getMyoidService();
 
-    void shortToast(String text) {
+    public void shortToast(String text) {
         Toast.makeText(service, text, Toast.LENGTH_SHORT).show();
-    }
-
-    private void openNotifications() {
-        service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_NOTIFICATIONS);
-    }
-
-    private void openRecents() {
-        service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS);
-    }
-
-    private void goBack() {
-        service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
-    }
-
-    private void goHome() {
-        service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME);
     }
 
     public void setMyo(Myo myo) {
         this.myo = myo;
     }
 
-    public Boolean execute(Gesture gesture) {
-        switch (gesture.getAction()) {
-            case GO_HOME:
-                goHome();
-                break;
-            case GO_BACK:
-                goBack();
-                break;
-            case OPEN_RECENTS:
-                openRecents();
-                break;
-            case OPEN_NOTIFICATIONS:
-                openNotifications();
-                break;
-        }
-        return true;
+    public void unlockMyo() {
+        myo.unlock(Myo.UnlockType.HOLD);
+        myo.vibrate(Myo.VibrationType.MEDIUM);
     }
 
-    public enum ActionCode {
-        GO_HOME,
-        GO_BACK,
-        OPEN_RECENTS,
-        OPEN_NOTIFICATIONS,
+    public void openNotifications() {
+        service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_NOTIFICATIONS);
+    }
+
+    public void openRecents() {
+        service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS);
+    }
+
+    public void goBack() {
+        service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
+    }
+
+    public void goHome() {
+        service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME);
     }
 }
