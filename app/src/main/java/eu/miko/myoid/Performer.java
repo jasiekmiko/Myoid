@@ -3,6 +3,7 @@ package eu.miko.myoid;
 import android.accessibilityservice.AccessibilityService;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.view.Gravity;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -16,6 +17,7 @@ import static java.lang.Math.min;
 
 public class Performer {
     private static Performer instance;
+
     public static Performer getInstance() {
         if (instance == null) instance = new Performer();
         return instance;
@@ -100,11 +102,39 @@ public class Performer {
         if (cursor != null) mas.getWindowManager().removeView(cursor);
     }
 
-    public void mouseTap() {
+    public void mouseScroll() {
         AccessibilityNodeInfo root = mas.getRootInActiveWindow();
         AccessibilityNodeInfo scrollableView = findScrollableView(root);
-        if (scrollableView != null) scrollableView.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD);
+        if (scrollableView != null)
+            scrollableView.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD);
         else shortToast("scrollableView null");
+    }
+
+    private void mouseTap() {
+        AccessibilityNodeInfo root = mas.getRootInActiveWindow();
+        AccessibilityNodeInfo pointedAt = findChildAt(root, cursorParams.x, cursorParams.y);
+        if (pointedAt != null) {
+            if (pointedAt.isClickable())
+                pointedAt.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+        } else shortToast("pointedAt null");
+    }
+
+    private AccessibilityNodeInfo findChildAt(AccessibilityNodeInfo nodeInfo, int x, int y) {
+        if (nodeInfo == null) return null;
+        Rect bounds = new Rect();
+        nodeInfo.getBoundsInScreen(bounds);
+        int childCount = nodeInfo.getChildCount();
+        if (!bounds.contains(x, y)) return null;
+        else if (childCount == 0) return nodeInfo;
+
+        int childIndex = 0;
+        while (childIndex < childCount) {
+            AccessibilityNodeInfo result = findChildAt(nodeInfo.getChild(childIndex), x, y);
+            if (result != null) return result;
+            childIndex += 1;
+        }
+        return nodeInfo;
+
     }
 
     private AccessibilityNodeInfo findScrollableView(AccessibilityNodeInfo nodeInfo) {
@@ -119,7 +149,6 @@ public class Performer {
                 childIndex += 1;
             }
             return result;
-        }
-        else return null;
+        } else return null;
     }
 }
