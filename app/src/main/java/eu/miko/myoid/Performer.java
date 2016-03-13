@@ -102,21 +102,23 @@ public class Performer {
         if (cursor != null) mas.getWindowManager().removeView(cursor);
     }
 
-    public void mouseScroll() {
+    public void mouseScroll(boolean down) {
+        int scrollDir = down ? AccessibilityNodeInfo.ACTION_SCROLL_FORWARD : AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD;
         AccessibilityNodeInfo root = mas.getRootInActiveWindow();
-        AccessibilityNodeInfo scrollableView = findScrollableView(root);
+        AccessibilityNodeInfo rootMostNodeUnderCursor = findChildAt(root, cursorParams.x, cursorParams.y);
+        AccessibilityNodeInfo scrollableView = findScrollable(rootMostNodeUnderCursor);
         if (scrollableView != null)
-            scrollableView.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD);
+            scrollableView.performAction(scrollDir);
         else shortToast("scrollableView null");
     }
 
-    private void mouseTap() {
+    public void mouseTap() {
         AccessibilityNodeInfo root = mas.getRootInActiveWindow();
-        AccessibilityNodeInfo pointedAt = findChildAt(root, cursorParams.x, cursorParams.y);
-        if (pointedAt != null) {
-            if (pointedAt.isClickable())
-                pointedAt.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-        } else shortToast("pointedAt null");
+        AccessibilityNodeInfo rootMostNodeUnderCursor = findChildAt(root, cursorParams.x, cursorParams.y);
+        AccessibilityNodeInfo clickableNode = findClickable(rootMostNodeUnderCursor);
+        if (clickableNode != null) {
+            clickableNode.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+        } else shortToast("nothing to tap here");
     }
 
     private AccessibilityNodeInfo findChildAt(AccessibilityNodeInfo nodeInfo, int x, int y) {
@@ -137,18 +139,25 @@ public class Performer {
 
     }
 
-    private AccessibilityNodeInfo findScrollableView(AccessibilityNodeInfo nodeInfo) {
-        if (nodeInfo == null) return null;
-        if (nodeInfo.isScrollable()) return nodeInfo;
-        else if (nodeInfo.getChildCount() > 0) {
-            int childCount = nodeInfo.getChildCount();
-            int childIndex = 0;
-            AccessibilityNodeInfo result = null;
-            while (result == null && childIndex < childCount) {
-                result = findScrollableView(nodeInfo.getChild(childIndex));
-                childIndex += 1;
-            }
-            return result;
-        } else return null;
+    private AccessibilityNodeInfo findClickable(AccessibilityNodeInfo root) {
+        if (root.isClickable()) return root;
+        int nChildren = root.getChildCount();
+        for (int i = 0; i < nChildren; i++){
+            AccessibilityNodeInfo child = root.getChild(i);
+            AccessibilityNodeInfo maybeClickable = findClickable(child);
+            if (maybeClickable != null) return maybeClickable;
+        }
+        return null;
+    }
+
+    private AccessibilityNodeInfo findScrollable(AccessibilityNodeInfo root) {
+        if (root.isScrollable()) return root;
+        int nChildren = root.getChildCount();
+        for (int i = 0; i < nChildren; i++){
+            AccessibilityNodeInfo child = root.getChild(i);
+            AccessibilityNodeInfo maybeClickable = findScrollable(child);
+            if (maybeClickable != null) return maybeClickable;
+        }
+        return null;
     }
 }

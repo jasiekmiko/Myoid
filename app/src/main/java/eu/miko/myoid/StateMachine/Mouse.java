@@ -18,8 +18,10 @@ class Mouse extends Mode {
                 break;
             case WAVE_IN:
                 //TODO: distinguish between down, top, left and right
+                performer.mouseScroll(false);
                 break;
             case WAVE_OUT:
+                performer.mouseScroll(true);
                 break;
             case FINGERS_SPREAD:
                 event = Event.SPREAD;
