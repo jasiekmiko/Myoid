@@ -4,9 +4,25 @@ import com.thalmic.myo.Pose;
 import com.thalmic.myo.Quaternion;
 import com.thalmic.myo.Vector3;
 
-public class Locked extends Mode {
+public class OptionsDoorway extends Mode {
     @Override
     public Event resolvePose(Pose pose) {
+        switch (pose) {
+            case REST:
+                return Event.RELAX;
+            case FIST:
+                break;
+            case WAVE_IN:
+                break;
+            case WAVE_OUT:
+                break;
+            case FINGERS_SPREAD:
+                break;
+            case DOUBLE_TAP:
+                break;
+            case UNKNOWN:
+                break;
+        }
         return null;
     }
 
@@ -24,4 +40,5 @@ public class Locked extends Mode {
     public Event resolveGyro(Vector3 gyro) {
         return null;
     }
+
 }

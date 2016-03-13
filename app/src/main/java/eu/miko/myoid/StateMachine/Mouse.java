@@ -3,7 +3,8 @@ package eu.miko.myoid.StateMachine;
 import com.thalmic.myo.Pose;
 import com.thalmic.myo.Quaternion;
 import com.thalmic.myo.Vector3;
-import com.thalmic.myo.XDirection;
+
+import static java.lang.Math.abs;
 
 class Mouse extends Mode {
 
@@ -28,6 +29,7 @@ class Mouse extends Mode {
                 break;
             case DOUBLE_TAP:
                 event = Event.DOUBLT_TAP;
+                performer.unlockMyoHold();
                 break;
             case UNKNOWN:
                 break;
@@ -41,8 +43,18 @@ class Mouse extends Mode {
         float pitch = (float) Math.toDegrees(Quaternion.pitch(rotation));
         float yaw = (float) Math.toDegrees(Quaternion.yaw(rotation));
 
-        performer.moveCursor((int) -yaw, (int)pitch);
+        performer.moveCursor(xMovement(yaw), yMovement(pitch));
         return null;
+    }
+
+    public int yMovement(float deg) {
+        if (abs(deg) < 5) return 0;
+        return (int)(deg/3);
+    }
+
+    public int xMovement(float deg) {
+        if (abs(deg) < 5) return 0;
+        return (int) (deg/10);
     }
 
     @Override

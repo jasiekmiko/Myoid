@@ -38,7 +38,7 @@ public class Performer {
         this.myo = myo;
     }
 
-    public void unlockMyo() {
+    public void unlockMyoHold() {
         myo.unlock(Myo.UnlockType.HOLD);
         myo.vibrate(Myo.VibrationType.MEDIUM);
     }
@@ -105,20 +105,25 @@ public class Performer {
     public void mouseScroll(boolean down) {
         int scrollDir = down ? AccessibilityNodeInfo.ACTION_SCROLL_FORWARD : AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD;
         AccessibilityNodeInfo root = mas.getRootInActiveWindow();
-        AccessibilityNodeInfo rootMostNodeUnderCursor = findChildAt(root, cursorParams.x, cursorParams.y);
-        AccessibilityNodeInfo scrollableView = findScrollable(rootMostNodeUnderCursor);
-        if (scrollableView != null)
-            scrollableView.performAction(scrollDir);
-        else shortToast("scrollableView null");
+        AccessibilityNodeInfo rootUnderCursor = findChildAt(root, cursorParams.x, cursorParams.y);
+        if (rootUnderCursor != null) {
+            AccessibilityNodeInfo scrollableView = findScrollable(rootUnderCursor);
+            if (scrollableView != null)
+                scrollableView.performAction(scrollDir);
+            else shortToast("nothing to scroll here");
+        } else shortToast("nothing here!");
     }
 
     public void mouseTap() {
         AccessibilityNodeInfo root = mas.getRootInActiveWindow();
-        AccessibilityNodeInfo rootMostNodeUnderCursor = findChildAt(root, cursorParams.x, cursorParams.y);
-        AccessibilityNodeInfo clickableNode = findClickable(rootMostNodeUnderCursor);
-        if (clickableNode != null) {
-            clickableNode.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-        } else shortToast("nothing to tap here");
+        AccessibilityNodeInfo rootUnderCursor = findChildAt(root, cursorParams.x, cursorParams.y);
+        if (rootUnderCursor != null) {
+            AccessibilityNodeInfo clickableNode = findClickable(rootUnderCursor);
+            if (clickableNode != null) {
+                clickableNode.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+            } else shortToast("nothing to tap here");
+        } else shortToast("nothing here!");
+
     }
 
     private AccessibilityNodeInfo findChildAt(AccessibilityNodeInfo nodeInfo, int x, int y) {

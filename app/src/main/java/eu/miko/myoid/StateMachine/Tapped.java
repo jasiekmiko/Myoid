@@ -9,7 +9,7 @@ class Tapped extends  Mode {
     @Override
     public Event resolvePose(Pose pose) {
         if (pose == Pose.DOUBLE_TAP) {
-            performer.unlockMyo();
+            performer.unlockMyoHold();
         }
         return null;
     }

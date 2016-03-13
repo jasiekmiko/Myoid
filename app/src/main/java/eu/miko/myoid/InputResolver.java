@@ -58,24 +58,20 @@ public class InputResolver {
 
     @NonNull
     private StateMachine<State, Event> createMyoidStateMachine() {
-        return new StateMachineBuilder<State, Event>(State.LOCKED)
-                //LOCKED
-                .onEnter(State.LOCKED, runnableEntryNotifier("Locked"))
-                .addTransition(State.LOCKED, Event.DOUBLT_TAP, State.MOUSE)
+        return new StateMachineBuilder<State, Event>(State.MOUSE)
                 //MOUSE
                 .onEnter(State.MOUSE, runnableEntryNotifier("Mouse"))
-                .addTransition(State.MOUSE, Event.DOUBLT_TAP, State.LOCKED)
                 .addTransition(State.MOUSE, Event.FIST, State.TAPPED)
-                .addTransition(State.MOUSE, Event.SPREAD, State.OPTIONS_ENTRY_FROM_MOUSE)
-                //OPTIONS_ENTRY_FROM_MOUSE
-                .onEnter(State.OPTIONS_ENTRY_FROM_MOUSE, new Runnable() {
+                .addTransition(State.MOUSE, Event.SPREAD, State.OPTIONS_DOORWAY_FROM_MOUSE)
+                //OPTIONS_DOORWAY_FROM_MOUSE
+                .onEnter(State.OPTIONS_DOORWAY_FROM_MOUSE, new Runnable() {
                     @Override
                     public void run() {
                         Log.d(TAG, String.format("%s state entered.", "optionsEntry"));
                         performer.shortToast("Options time!");
                     }
                 })
-                .addTransition(State.OPTIONS_ENTRY_FROM_MOUSE, Event.RELAX, State.MOUSE)
+                .addTransition(State.OPTIONS_DOORWAY_FROM_MOUSE, Event.RELAX, State.MOUSE)
                 //TAPPED
                 .addTransition(State.TAPPED, Event.RELAX, State.MOUSE)
                 .build();

@@ -9,9 +9,9 @@ import com.thalmic.myo.Vector3;
 public enum State {
     MOUSE(new Mouse()),
     TAPPED(new Tapped()),
-    OPTIONS_ENTRY_FROM_MOUSE,
+    OPTIONS_DOORWAY_FROM_MOUSE(new OptionsDoorway()),
     OPTIONS,
-    OPTIONS_ENTRY_FROM_MEDIA,
+    OPTIONS_DOORWAY_FROM_MEDIA,
     SYSTEM_VOLUME,
     QUICK_SETTINGS,
     MEDIA,
@@ -22,8 +22,7 @@ public enum State {
     IN_CALL,
     CALL_VOLUME,
     CAMERA,
-    CAMERA_ZOOM,
-    LOCKED(new Locked());
+    CAMERA_ZOOM;
 
     private Mode mode;
 
