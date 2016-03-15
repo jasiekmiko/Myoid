@@ -30,7 +30,7 @@ public class InputResolver {
     public void resolvePose(Pose pose) {
         Event resultingEvent = getCurrentMode().resolvePose(pose);
         myoidStateMachine.apply(resultingEvent);
-        performer.shortToast("Pose: " + pose);
+        Log.d(TAG, "Pose detected: " + pose);
     }
 
     public void resolveOrientation(Quaternion rotation) {
