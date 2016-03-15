@@ -41,4 +41,7 @@ public class OptionsDoorway extends Mode {
         return null;
     }
 
+    @Override
+    public void resolveUnlock() {}
+
 }

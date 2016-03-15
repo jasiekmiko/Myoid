@@ -15,7 +15,7 @@ class Mouse extends Mode {
             case REST:
                 break;
             case FIST:
-                performer.mouseTap();
+                event = Event.FIST;
                 break;
             case WAVE_IN:
                 //TODO: distinguish between down, top, left and right
@@ -28,8 +28,8 @@ class Mouse extends Mode {
                 event = Event.SPREAD;
                 break;
             case DOUBLE_TAP:
-                event = Event.DOUBLT_TAP;
-                performer.unlockMyoHold();
+                performer.hideCursor();
+                performer.lockMyo();
                 break;
             case UNKNOWN:
                 break;
@@ -68,5 +68,11 @@ class Mouse extends Mode {
     @Override
     public Event resolveGyro(Vector3 gyro) {
         return null;
+    }
+
+    @Override
+    public void resolveUnlock() {
+        performer.unlockMyoHold();
+        performer.displayCursor();
     }
 }

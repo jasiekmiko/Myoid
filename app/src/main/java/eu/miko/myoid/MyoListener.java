@@ -43,4 +43,10 @@ public class MyoListener extends AbstractDeviceListener {
     public void onGyroscopeData(Myo myo, long timestamp, Vector3 gyro) {
         inputResolver.resolveGyro(gyro);
     }
+
+    @Override
+    public void onUnlock(Myo myo, long timestamp) {
+        super.onUnlock(myo, timestamp);
+        inputResolver.resolveUnlock();
+    }
 }

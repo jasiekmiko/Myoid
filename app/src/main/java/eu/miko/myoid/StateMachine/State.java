@@ -57,6 +57,11 @@ public enum State {
                 Log.w(TAG, "resolveGyro called on an unimplemented Event");
                 return null;
             }
+
+            @Override
+            public void resolveUnlock() {
+                Log.w(TAG, "resolveGyro called on an unimplemented Event");
+            }
         };
     }
 

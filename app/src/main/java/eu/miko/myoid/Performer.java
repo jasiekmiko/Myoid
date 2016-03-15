@@ -38,9 +38,19 @@ public class Performer {
         this.myo = myo;
     }
 
+    public void lockMyo() {
+        myo.lock();
+        myo.vibrate(Myo.VibrationType.SHORT);
+    }
+
+    public void unlockMyoTimed() {
+        myo.unlock(Myo.UnlockType.HOLD);
+        myo.vibrate(Myo.VibrationType.SHORT);
+    }
+
     public void unlockMyoHold() {
         myo.unlock(Myo.UnlockType.HOLD);
-        myo.vibrate(Myo.VibrationType.MEDIUM);
+        myo.vibrate(Myo.VibrationType.SHORT);
     }
 
     public void openNotifications() {

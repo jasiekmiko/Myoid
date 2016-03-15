@@ -48,6 +48,10 @@ public class InputResolver {
         if(resultingEvent != null) myoidStateMachine.apply(resultingEvent);
     }
 
+    public void resolveUnlock() {
+        getCurrentMode().resolveUnlock();
+    }
+
     public void setArm(Arm arm) {
         this.arm = arm;
     }
@@ -85,5 +89,4 @@ public class InputResolver {
             }
         };
     }
-
 }
