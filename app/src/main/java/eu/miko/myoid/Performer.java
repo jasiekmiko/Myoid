@@ -1,10 +1,15 @@
 package eu.miko.myoid;
 
 import android.accessibilityservice.AccessibilityService;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.view.Gravity;
+import android.view.View;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.ImageView;
@@ -17,18 +22,19 @@ import static java.lang.Math.min;
 
 public class Performer {
     private static Performer instance;
-
     public static Performer getInstance() {
         if (instance == null) instance = new Performer();
         return instance;
     }
 
     private Myo myo;
+
     private Point screenSize;
     private ImageView cursor;
     private WindowManager.LayoutParams cursorParams;
     private boolean cursorInitialized = false;
     private MyoidAccessibilityService mas = MyoidAccessibilityService.getMyoidService();
+    private WindowManager windowManager = mas.getWindowManager();
 
     public void shortToast(String text) {
         Toast.makeText(mas, text, Toast.LENGTH_SHORT).show();
@@ -87,29 +93,50 @@ public class Performer {
     }
 
     public void displayCursor() {
-        WindowManager windowManager = mas.getWindowManager();
         windowManager.addView(cursor, cursorParams);
         cursorInitialized = true;
+    }
+
+    public void displayOptions() {
+        View optionsWindow = new View(mas) {
+            private Rect rect = new Rect();
+            private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+            @Override
+            protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+                super.onSizeChanged(w, h, oldw, oldh);
+                rect.set(0, 0, w, h);
+            }
+
+            @Override
+            protected void onDraw(Canvas canvas) {
+                super.onDraw(canvas);
+
+                paint.setStyle(Paint.Style.FILL);
+                paint.setColor(Color.BLUE);
+                canvas.drawRect(rect, paint);
+            }
+        };
+        WindowManager.LayoutParams optionsLayoutParams = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,);
+        optionsLayoutParams.x = 0;
+        optionsLayoutParams.y = 0;
+        windowManager.addView(optionsWindow, optionsLayoutParams);
     }
 
     public void moveCursor(int x, int y) {
         if (cursorInitialized) {
             cursorParams.x = keepOnScreenX(cursorParams.x + x);
             cursorParams.y = keepOnScreenY(cursorParams.y + y);
-            mas.getWindowManager().updateViewLayout(cursor, cursorParams);
+            windowManager.updateViewLayout(cursor, cursorParams);
         }
     }
 
-    private int keepOnScreenY(int y) {
-        return max(0, min(y, screenSize.y));
-    }
-
-    private int keepOnScreenX(int x) {
-        return max(0, min(x, screenSize.x));
-    }
-
     public void hideCursor() {
-        if (cursor != null) mas.getWindowManager().removeView(cursor);
+        if (cursor != null) windowManager.removeView(cursor);
     }
 
     public void mouseScroll(boolean down) {
@@ -134,6 +161,14 @@ public class Performer {
             } else shortToast("nothing to tap here");
         } else shortToast("nothing here!");
 
+    }
+
+    private int keepOnScreenY(int y) {
+        return max(0, min(y, screenSize.y));
+    }
+
+    private int keepOnScreenX(int x) {
+        return max(0, min(x, screenSize.x));
     }
 
     private AccessibilityNodeInfo findChildAt(AccessibilityNodeInfo nodeInfo, int x, int y) {

@@ -80,6 +80,7 @@ public class InputResolver {
                 //TAPPED
                 .addTransition(State.TAPPED, Event.RELAX, State.MOUSE)
                 //OPTIONS_FROM_MOUSE
+                .onEnter(State.OPTIONS_FROM_MOUSE, new runnableOpenOptions())
                 .addTransition(State.OPTIONS_FROM_MOUSE, Event.LEFT, State.MOUSE)
                 .build();
     }
@@ -91,5 +92,12 @@ public class InputResolver {
                 Log.d(TAG, String.format("%s state entered.", newState));
             }
         };
+    }
+
+    private class runnableOpenOptions implements Runnable {
+        @Override
+        public void run() {
+            performer.displayOptions();
+        }
     }
 }
