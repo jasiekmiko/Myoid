@@ -76,8 +76,11 @@ public class InputResolver {
                     }
                 })
                 .addTransition(State.OPTIONS_DOORWAY_FROM_MOUSE, Event.RELAX, State.MOUSE)
+                .addTransition(State.OPTIONS_DOORWAY_FROM_MOUSE, Event.Z_AXIS, State.OPTIONS_FROM_MOUSE)
                 //TAPPED
                 .addTransition(State.TAPPED, Event.RELAX, State.MOUSE)
+                //OPTIONS_FROM_MOUSE
+                .addTransition(State.OPTIONS_FROM_MOUSE, Event.LEFT, State.MOUSE)
                 .build();
     }
 

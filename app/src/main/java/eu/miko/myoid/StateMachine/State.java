@@ -10,7 +10,7 @@ public enum State {
     MOUSE(new Mouse()),
     TAPPED(new Tapped()),
     OPTIONS_DOORWAY_FROM_MOUSE(new OptionsDoorway()),
-    OPTIONS,
+    OPTIONS_FROM_MOUSE(Options.getInstance()),
     OPTIONS_DOORWAY_FROM_MEDIA,
     SYSTEM_VOLUME,
     QUICK_SETTINGS,
@@ -23,6 +23,7 @@ public enum State {
     CALL_VOLUME,
     CAMERA,
     CAMERA_ZOOM;
+
 
     private Mode mode;
 

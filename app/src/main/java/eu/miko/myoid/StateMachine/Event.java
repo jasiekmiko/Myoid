@@ -15,7 +15,6 @@ public enum Event {
     DOWN,
     SPREAD,
     RELAX,
-    DOUBLT_TAP,
     Z_AXIS,
-    OPTION_SELECTED;
+    OPTION_SELECTED,
 }

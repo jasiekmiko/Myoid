@@ -4,26 +4,27 @@ import com.thalmic.myo.Pose;
 import com.thalmic.myo.Quaternion;
 import com.thalmic.myo.Vector3;
 
-public class OptionsDoorway extends Mode {
+public class Options extends Mode {
+    private static Mode instance;
+    public static Mode getInstance() {
+        if (instance == null) instance = new Options();
+        return instance;
+    }
+
     @Override
     public Event resolvePose(Pose pose) {
+        Event event = null;
         switch (pose) {
-            case REST:
-                return Event.RELAX;
             case FIST:
+                event = Event.FIST;
                 break;
             case WAVE_IN:
-                break;
-            case WAVE_OUT:
-                break;
-            case FINGERS_SPREAD:
+                event = Event.LEFT;
                 break;
             case DOUBLE_TAP:
-                break;
-            case UNKNOWN:
-                break;
+                performer.lockMyo();
         }
-        return null;
+        return event;
     }
 
     @Override
@@ -33,7 +34,6 @@ public class OptionsDoorway extends Mode {
 
     @Override
     public Event resolveAcceleration(Vector3 acceleration) {
-        if (acceleration.z() > .1) return Event.Z_AXIS;
         return null;
     }
 
@@ -43,6 +43,7 @@ public class OptionsDoorway extends Mode {
     }
 
     @Override
-    public void resolveUnlock() {}
-
+    public void resolveUnlock() {
+        performer.unlockMyoHold();
+    }
 }
