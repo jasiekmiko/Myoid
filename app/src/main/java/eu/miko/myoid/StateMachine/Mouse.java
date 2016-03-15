@@ -47,14 +47,17 @@ class Mouse extends Mode {
         return null;
     }
 
-    public int yMovement(float deg) {
-        if (abs(deg) < 5) return 0;
-        return (int)(deg/3);
+    public int xMovement(float deg) {
+        float degCorrected = deg;
+        if (deg < -90) degCorrected = -180 - deg;
+        else if (deg > 90) degCorrected = 180 - deg;
+        if (abs(degCorrected) < 8) return 0;
+        return (int) (degCorrected/3);
     }
 
-    public int xMovement(float deg) {
+    public int yMovement(float deg) {
         if (abs(deg) < 5) return 0;
-        return (int) (deg/10);
+        return (int)(-deg/3);
     }
 
     @Override
