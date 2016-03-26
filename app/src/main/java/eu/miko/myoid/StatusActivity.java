@@ -17,6 +17,7 @@ public class StatusActivity extends Activity {
     final static int REQUEST_FINE_LOCATION = 101;
     public static final int REQUEST_DRAWING_RIGHTS = 102;
     private final String TAG = "StatusActivity";
+    private Performer performer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +40,15 @@ public class StatusActivity extends Activity {
             @Override
             public void onClick(View v) {
                 PointerInitializer.checkPermissionsAndInitializePointer(activity);
+            }
+        });
+
+        Button optionsViewTestButton = (Button) findViewById(R.id.myoidScreenTestButton);
+        optionsViewTestButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                performer = Performer.getInstance();
+                performer.displayOptions();
             }
         });
 

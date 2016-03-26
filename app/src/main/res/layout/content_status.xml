@@ -33,6 +33,13 @@
             android:layout_gravity="center_horizontal"
             android:text="@string/accessibilityStatusNotConnected"
             android:textAppearance="?android:attr/textAppearanceLarge" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Myoid screen"
+            android:id="@+id/myoidScreenTestButton"
+            android:layout_gravity="center_horizontal" />
     </LinearLayout>
 
 
