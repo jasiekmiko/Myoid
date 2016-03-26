@@ -118,10 +118,13 @@ public class Performer {
             }
         };
         WindowManager.LayoutParams optionsLayoutParams = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,);
+                screenSize.x, // size
+                screenSize.y,
+                0, // position
+                0,
+                WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+                PixelFormat.TRANSLUCENT);
         optionsLayoutParams.x = 0;
         optionsLayoutParams.y = 0;
         windowManager.addView(optionsWindow, optionsLayoutParams);
