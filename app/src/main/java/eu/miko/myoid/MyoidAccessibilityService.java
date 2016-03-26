@@ -51,7 +51,6 @@ public class MyoidAccessibilityService extends AccessibilityService {
         display.getSize(screenSize);
         performer = Performer.getInstance();
         performer.initCursor(screenSize);
-
     }
 
     @Override

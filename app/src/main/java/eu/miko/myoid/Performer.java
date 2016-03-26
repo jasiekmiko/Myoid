@@ -7,8 +7,8 @@ import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.Rect;
-import android.graphics.drawable.Drawable;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -27,15 +27,19 @@ public class Performer {
         return instance;
     }
 
+    private View optionsWindow;
+    private WindowManager.LayoutParams optionsLayoutParams;
+    private Boolean optionsWindowInitialized = false;
+
     private Myo myo;
 
     private Point screenSize;
+
     private ImageView cursor;
     private WindowManager.LayoutParams cursorParams;
     private boolean cursorInitialized = false;
     private MyoidAccessibilityService mas = MyoidAccessibilityService.getMyoidService();
     private WindowManager windowManager = mas.getWindowManager();
-
     public void shortToast(String text) {
         Toast.makeText(mas, text, Toast.LENGTH_SHORT).show();
     }
@@ -87,7 +91,7 @@ public class Performer {
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
 
-        cursorParams.gravity = Gravity.TOP | Gravity.LEFT;
+        cursorParams.gravity = Gravity.TOP | Gravity.START;
         cursorParams.x = 0;
         cursorParams.y = 100;
     }
@@ -98,36 +102,18 @@ public class Performer {
     }
 
     public void displayOptions() {
-        View optionsWindow = new View(mas) {
-            private Rect rect = new Rect();
-            private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        if (!optionsWindowInitialized) {
+            initOptionsWindow();
+            windowManager.addView(optionsWindow, optionsLayoutParams);
+            optionsWindowInitialized = true;
+        }
+        optionsWindow.setVisibility(View.VISIBLE);
+        windowManager.updateViewLayout(optionsWindow, optionsLayoutParams);
+    }
 
-            @Override
-            protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-                super.onSizeChanged(w, h, oldw, oldh);
-                rect.set(0, 0, w, h);
-            }
-
-            @Override
-            protected void onDraw(Canvas canvas) {
-                super.onDraw(canvas);
-
-                paint.setStyle(Paint.Style.FILL);
-                paint.setColor(Color.BLUE);
-                canvas.drawRect(rect, paint);
-            }
-        };
-        WindowManager.LayoutParams optionsLayoutParams = new WindowManager.LayoutParams(
-                screenSize.x, // size
-                screenSize.y,
-                0, // position
-                0,
-                WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
-                PixelFormat.TRANSLUCENT);
-        optionsLayoutParams.x = 0;
-        optionsLayoutParams.y = 0;
-        windowManager.addView(optionsWindow, optionsLayoutParams);
+    public void dismissOptions() {
+        optionsWindow.setVisibility(View.GONE);
+        windowManager.updateViewLayout(optionsWindow, optionsLayoutParams);
     }
 
     public void moveCursor(int x, int y) {
@@ -164,6 +150,44 @@ public class Performer {
             } else shortToast("nothing to tap here");
         } else shortToast("nothing here!");
 
+    }
+
+    private void initOptionsWindow() {
+        optionsWindow = new View(mas) {
+            private Rect rect = new Rect();
+            private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+            @Override
+            protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+                super.onSizeChanged(w, h, oldw, oldh);
+                rect.set(0, 0, w, h);
+            }
+
+            @Override
+            protected void onDraw(Canvas canvas) {
+                super.onDraw(canvas);
+
+                paint.setStyle(Paint.Style.FILL);
+                paint.setColor(Color.BLUE);
+                canvas.drawRect(rect, paint);
+            }
+        };
+        optionsWindow.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                dismissOptions();
+                return true;
+            }
+        });
+        optionsWindow.setVisibility(View.GONE);
+        optionsLayoutParams = new WindowManager.LayoutParams(
+                screenSize.x, // size
+                screenSize.y,
+                0, // position
+                0,
+                WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+                PixelFormat.TRANSLUCENT);
     }
 
     private int keepOnScreenY(int y) {
