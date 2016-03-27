@@ -108,12 +108,10 @@ public class Performer {
             optionsWindowInitialized = true;
         }
         optionsWindow.setVisibility(View.VISIBLE);
-        windowManager.updateViewLayout(optionsWindow, optionsLayoutParams);
     }
 
     public void dismissOptions() {
         optionsWindow.setVisibility(View.GONE);
-        windowManager.updateViewLayout(optionsWindow, optionsLayoutParams);
     }
 
     public void moveCursor(int x, int y) {
@@ -168,25 +166,30 @@ public class Performer {
                 super.onDraw(canvas);
 
                 paint.setStyle(Paint.Style.FILL);
-                paint.setColor(Color.BLUE);
+                paint.setColor(Color.argb(123,0,0,255));
                 canvas.drawRect(rect, paint);
             }
         };
+        optionsWindow.setVisibility(View.GONE);
         optionsWindow.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                dismissOptions();
-                return true;
+                if (event.getAction() == MotionEvent.ACTION_OUTSIDE){
+                    dismissOptions();
+                    return true;
+                }
+                return false;
             }
         });
-        optionsWindow.setVisibility(View.GONE);
         optionsLayoutParams = new WindowManager.LayoutParams(
-                screenSize.x, // size
-                screenSize.y,
+                screenSize.x - 200, // size
+                screenSize.y - 200,
                 0, // position
                 0,
-                WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                    | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
+                    | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
     }
 
