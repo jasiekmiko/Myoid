@@ -2,6 +2,8 @@
   <dictionary name="Jasiek">
     <words>
       <w>myoid</w>
+      <w>recents</w>
+      <w>touchables</w>
     </words>
   </dictionary>
 </component>

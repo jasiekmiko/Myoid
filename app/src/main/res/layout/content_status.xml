@@ -12,4 +12,35 @@
     tools:context="eu.miko.myoid.StatusActivity"
     tools:showIn="@layout/activity_status">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/initilizeCursor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="@string/startCursorButtonLabel" />
+
+        <TextView
+            android:id="@+id/accessibilityStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="@string/accessibilityStatusNotConnected"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Myoid screen"
+            android:id="@+id/myoidScreenTestButton"
+            android:layout_gravity="center_horizontal" />
+    </LinearLayout>
+
+
 </RelativeLayout>

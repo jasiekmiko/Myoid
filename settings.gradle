@@ -1,1 +1,2 @@
+include ':libraries:stateful'
 include ':app'
