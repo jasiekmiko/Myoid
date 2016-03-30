@@ -6,9 +6,17 @@ import com.thalmic.myo.Pose;
 import com.thalmic.myo.Quaternion;
 import com.thalmic.myo.Vector3;
 
+import javax.inject.Inject;
+
 public class MyoListener extends AbstractDeviceListener {
-    private InputResolver inputResolver = InputResolver.getInstance();
-    private Performer performer = Performer.getInstance();
+    private InputResolver inputResolver;
+    private IPerformer performer;
+
+    @Inject
+    public MyoListener(IPerformer performer, InputResolver inputResolver) {
+        this.performer = performer;
+        this.inputResolver = inputResolver;
+    }
 
     @Override
     public void onConnect(Myo myo, long timestamp) {

@@ -5,18 +5,19 @@ import android.content.Context;
 import com.thalmic.myo.AbstractDeviceListener;
 import com.thalmic.myo.Hub;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+@Singleton
 public class MyoHubManager implements IMyoHubManager {
-    private static MyoHubManager instance;
-    private MyoHubManager(){}
-    public static MyoHubManager getInstance() {
-        if (instance == null) instance = new MyoHubManager();
-        return instance;
+    @Inject
+    public MyoHubManager(MyoListener listener){
+        this.listener = listener;
     }
 
     private Hub hub = Hub.getInstance();
-    private AbstractDeviceListener listener = new MyoListener();
-
-    public Boolean hubInitialized = false;
+    private AbstractDeviceListener listener;
+    private Boolean hubInitialized = false;
 
     @Override
     public void initializeHub(String packageName) {
@@ -31,5 +32,9 @@ public class MyoHubManager implements IMyoHubManager {
     @Override
     public Hub getHub() {
         return hub;
+    }
+
+    public boolean getIfHubInitialized() {
+        return hubInitialized;
     }
 }

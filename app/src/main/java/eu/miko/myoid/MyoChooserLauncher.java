@@ -11,11 +11,21 @@ import android.util.Log;
 
 import com.thalmic.myo.scanner.ScanActivity;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+@Singleton
 public class MyoChooserLauncher {
     private static final String TAG = "MyoChooserLauncher";
+    private IMyoHubManager myoHubManager;
 
-    public static void chooseMyo(Activity intentCaller) {
-        if (MyoHubManager.getInstance().hubInitialized) {
+    @Inject
+    public MyoChooserLauncher(IMyoHubManager myoHubManager) {
+        this.myoHubManager = myoHubManager;
+    }
+
+    public void chooseMyo(Activity intentCaller) {
+        if (myoHubManager.getIfHubInitialized()) {
             int permissionCheck = ContextCompat.checkSelfPermission(intentCaller, Manifest.permission.ACCESS_FINE_LOCATION);
             if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
                 startMyoChooser(intentCaller);

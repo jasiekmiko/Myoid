@@ -10,22 +10,21 @@ import com.thalmic.myo.Pose;
 import com.thalmic.myo.Quaternion;
 import com.thalmic.myo.Vector3;
 
-import eu.miko.myoid.StateMachine.Event;
-import eu.miko.myoid.StateMachine.Mode;
-import eu.miko.myoid.StateMachine.State;
+import javax.inject.Inject;
 
 public class InputResolver {
     private static final String TAG = InputResolver.class.getName();
-    private static InputResolver instance;
-    private InputResolver() {}
-    public static InputResolver getInstance() {
-        if (instance == null) instance = new InputResolver();
-        return instance;
+    private ModeFromStateMap modeFromState;
+
+    @Inject
+    public InputResolver(ModeFromStateMap modeFromState, IPerformer performer) {
+        this.modeFromState = modeFromState;
+        this.performer = performer;
     }
 
     private StateMachine<State, Event> myoidStateMachine = createMyoidStateMachine();
     private Arm arm;
-    private Performer performer = Performer.getInstance();
+    private IPerformer performer;
 
     public void resolvePose(Pose pose) {
         Event resultingEvent = getCurrentMode().resolvePose(pose);
@@ -57,7 +56,7 @@ public class InputResolver {
     }
 
     private Mode getCurrentMode() {
-        return myoidStateMachine.getState().getMode();
+        return modeFromState.get(myoidStateMachine.getState());
     }
 
     @NonNull

@@ -13,17 +13,21 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import javax.inject.Inject;
+
 public class StatusActivity extends Activity {
     final static int REQUEST_FINE_LOCATION = 101;
     public static final int REQUEST_DRAWING_RIGHTS = 102;
     private final String TAG = "StatusActivity";
-    private Performer performer;
+    private Boolean injected = false;
+    @Inject IPerformer performer;
+    @Inject PointerInitializer pointerInitializer;
+    @Inject MyoChooserLauncher myoChooserLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_status);
-
         startService(new Intent(this, MyoidAccessibilityService.class));
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -31,7 +35,8 @@ public class StatusActivity extends Activity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                MyoChooserLauncher.chooseMyo(activity);
+                ensureActivityInjected();
+                myoChooserLauncher.chooseMyo(activity);
             }
         });
 
@@ -39,7 +44,8 @@ public class StatusActivity extends Activity {
         cursorButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                PointerInitializer.checkPermissionsAndInitializePointer(activity);
+                ensureActivityInjected();
+                pointerInitializer.checkPermissionsAndInitializePointer(activity);
             }
         });
 
@@ -47,7 +53,7 @@ public class StatusActivity extends Activity {
         optionsViewTestButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                performer = Performer.getInstance();
+                ensureActivityInjected();
                 performer.displayOptions();
             }
         });
@@ -56,8 +62,15 @@ public class StatusActivity extends Activity {
         accessibilityStatus.setText(isServiceConnected() ? R.string.accessibilityStatusConnected : R.string.accessibilityStatusNotConnected);
     }
 
+    public void ensureActivityInjected() {
+        if(!injected) {
+            MyoidAccessibilityService.getMyoidService().getObjectGraph().inject(this);
+            injected = true;
+        }
+    }
+
     private boolean isServiceConnected() {
-        MyoidAccessibilityService mas = null;
+        MyoidAccessibilityService mas;
         try {
             mas = MyoidAccessibilityService.getMyoidService();
         } catch (Error e) {
@@ -79,7 +92,7 @@ public class StatusActivity extends Activity {
             }
             case REQUEST_DRAWING_RIGHTS: {
                 if (isPermissionGranted((grantResults))) {
-                    PointerInitializer.initializePointer();
+                    pointerInitializer.initializePointer();
                 } else {
                     Log.i(TAG, "ALERT_WINDOW permission denied.");
                 }
@@ -94,7 +107,7 @@ public class StatusActivity extends Activity {
         switch (requestCode) {
             case REQUEST_DRAWING_RIGHTS: {
                 if (Settings.canDrawOverlays(MyoidAccessibilityService.getMyoidService()))
-                    PointerInitializer.initializePointer();
+                    pointerInitializer.initializePointer();
                 else Log.i(TAG, "Drawing rights not granted.");
                 break;
             }
