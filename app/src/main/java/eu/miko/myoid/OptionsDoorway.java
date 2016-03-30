@@ -1,30 +1,38 @@
-package eu.miko.myoid.StateMachine;
+package eu.miko.myoid;
 
 import com.thalmic.myo.Pose;
 import com.thalmic.myo.Quaternion;
 import com.thalmic.myo.Vector3;
 
-public class Options extends Mode {
-    private static Mode instance;
-    public static Mode getInstance() {
-        if (instance == null) instance = new Options();
-        return instance;
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+@Singleton
+public class OptionsDoorway extends Mode {
+    @Inject
+    public OptionsDoorway(Performer performer) {
+        super(performer);
     }
 
     @Override
     public Event resolvePose(Pose pose) {
-        Event event = null;
         switch (pose) {
+            case REST:
+                return Event.RELAX;
             case FIST:
-                event = Event.FIST;
                 break;
             case WAVE_IN:
-                event = Event.LEFT;
+                break;
+            case WAVE_OUT:
+                break;
+            case FINGERS_SPREAD:
                 break;
             case DOUBLE_TAP:
-                performer.lockMyo();
+                break;
+            case UNKNOWN:
+                break;
         }
-        return event;
+        return null;
     }
 
     @Override
@@ -34,6 +42,7 @@ public class Options extends Mode {
 
     @Override
     public Event resolveAcceleration(Vector3 acceleration) {
+        if (acceleration.z() > .1) return Event.Z_AXIS;
         return null;
     }
 
@@ -43,7 +52,6 @@ public class Options extends Mode {
     }
 
     @Override
-    public void resolveUnlock() {
-        performer.unlockMyoHold();
-    }
+    public void resolveUnlock() {}
+
 }

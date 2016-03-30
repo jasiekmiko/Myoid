@@ -11,11 +11,14 @@ import android.widget.Toast;
 
 import com.thalmic.myo.Hub;
 
-import static java.lang.Math.max;
-import static java.lang.Math.min;
+import javax.inject.Inject;
+
+import dagger.ObjectGraph;
 
 public class MyoidAccessibilityService extends AccessibilityService {
     private static MyoidAccessibilityService me;
+    private ObjectGraph objectGraph;
+
     public static MyoidAccessibilityService getMyoidService() {
         if (me == null) throw new Error ("Myoid service not created.");
         return me;
@@ -23,9 +26,8 @@ public class MyoidAccessibilityService extends AccessibilityService {
 
     private final String TAG = "Myoid service";
 
-    private IMyoHubManager myoHubManager;
+    @Inject IMyoHubManager myoHubManager;
     private WindowManager windowManager;
-    private Performer performer;
 
     protected boolean serviceConnected = false;
 
@@ -41,16 +43,11 @@ public class MyoidAccessibilityService extends AccessibilityService {
     public void onCreate() {
         me = this;
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+        objectGraph = ObjectGraph.create(new DaggerModule(this, windowManager));
+        objectGraph.inject(this);
 
-        myoHubManager = MyoHubManager.getInstance();
         myoHubManager.initializeHub(getPackageName());
         Log.i(TAG, "Service created.");
-
-        Display display = windowManager.getDefaultDisplay();
-        Point screenSize = new Point();
-        display.getSize(screenSize);
-        performer = Performer.getInstance();
-        performer.initCursor(screenSize);
     }
 
     @Override
@@ -79,10 +76,11 @@ public class MyoidAccessibilityService extends AccessibilityService {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        performer.hideCursor();
         serviceConnected = false;
         me = null;
     }
+
+    public ObjectGraph getObjectGraph() { return objectGraph; }
 
     private void startStatusActivity() {
         Intent intent = new Intent(this, StatusActivity.class);

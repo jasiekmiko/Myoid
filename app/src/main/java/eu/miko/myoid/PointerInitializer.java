@@ -10,10 +10,20 @@ import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+@Singleton
 public class PointerInitializer {
     private static final String TAG = PointerInitializer.class.getName();
+    private Performer performer;
 
-    public static void checkPermissionsAndInitializePointer(Activity activity) {
+    @Inject
+    public PointerInitializer(Performer performer) {
+        this.performer = performer;
+    }
+
+    public void checkPermissionsAndInitializePointer(Activity activity) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (!Settings.canDrawOverlays(activity)) {
                 Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
@@ -33,7 +43,7 @@ public class PointerInitializer {
         }
     }
 
-    public static void initializePointer() {
-        Performer.getInstance().displayCursor();
+    public void initializePointer() {
+        performer.displayCursor();
     }
 }

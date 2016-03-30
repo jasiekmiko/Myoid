@@ -7,6 +7,7 @@ import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -17,14 +18,21 @@ import android.widget.Toast;
 
 import com.thalmic.myo.Myo;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
-public class Performer {
-    private static Performer instance;
-    public static Performer getInstance() {
-        if (instance == null) instance = new Performer();
-        return instance;
+@Singleton
+public class Performer implements IPerformer {
+    @Inject
+    public Performer(WindowManager windowManager) {
+        this.windowManager = windowManager;
+
+        Display display = windowManager.getDefaultDisplay();
+        display.getSize(screenSize);
+        initCursor();
     }
 
     private View optionsWindow;
@@ -33,54 +41,64 @@ public class Performer {
 
     private Myo myo;
 
-    private Point screenSize;
+    private final Point screenSize = new Point();
 
     private ImageView cursor;
     private WindowManager.LayoutParams cursorParams;
     private boolean cursorInitialized = false;
     private MyoidAccessibilityService mas = MyoidAccessibilityService.getMyoidService();
-    private WindowManager windowManager = mas.getWindowManager();
+    private WindowManager windowManager;
+
+    @Override
     public void shortToast(String text) {
         Toast.makeText(mas, text, Toast.LENGTH_SHORT).show();
     }
 
+    @Override
     public void setMyo(Myo myo) {
         this.myo = myo;
     }
 
+    @Override
     public void lockMyo() {
         myo.lock();
         myo.vibrate(Myo.VibrationType.SHORT);
     }
 
+    @Override
     public void unlockMyoTimed() {
         myo.unlock(Myo.UnlockType.HOLD);
         myo.vibrate(Myo.VibrationType.SHORT);
     }
 
+    @Override
     public void unlockMyoHold() {
         myo.unlock(Myo.UnlockType.HOLD);
         myo.vibrate(Myo.VibrationType.SHORT);
     }
 
+    @Override
     public void openNotifications() {
         mas.performGlobalAction(AccessibilityService.GLOBAL_ACTION_NOTIFICATIONS);
     }
 
+    @Override
     public void openRecents() {
         mas.performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS);
     }
 
+    @Override
     public void goBack() {
         mas.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
     }
 
+    @Override
     public void goHome() {
         mas.performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME);
     }
 
-    public void initCursor(Point screenSize) {
-        this.screenSize = screenSize;
+    @Override
+    public void initCursor() {
         cursor = new ImageView(mas);
         cursor.setImageResource(R.mipmap.ic_launcher);
 
@@ -96,11 +114,13 @@ public class Performer {
         cursorParams.y = 100;
     }
 
+    @Override
     public void displayCursor() {
         windowManager.addView(cursor, cursorParams);
         cursorInitialized = true;
     }
 
+    @Override
     public void displayOptions() {
         if (!optionsWindowInitialized) {
             initOptionsWindow();
@@ -110,10 +130,12 @@ public class Performer {
         optionsWindow.setVisibility(View.VISIBLE);
     }
 
+    @Override
     public void dismissOptions() {
         optionsWindow.setVisibility(View.GONE);
     }
 
+    @Override
     public void moveCursor(int x, int y) {
         if (cursorInitialized) {
             cursorParams.x = keepOnScreenX(cursorParams.x + x);
@@ -122,10 +144,12 @@ public class Performer {
         }
     }
 
+    @Override
     public void hideCursor() {
         if (cursor != null) windowManager.removeView(cursor);
     }
 
+    @Override
     public void mouseScroll(boolean down) {
         int scrollDir = down ? AccessibilityNodeInfo.ACTION_SCROLL_FORWARD : AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD;
         AccessibilityNodeInfo root = mas.getRootInActiveWindow();
@@ -138,6 +162,7 @@ public class Performer {
         } else shortToast("nothing here!");
     }
 
+    @Override
     public void mouseTap() {
         AccessibilityNodeInfo root = mas.getRootInActiveWindow();
         AccessibilityNodeInfo rootUnderCursor = findChildAt(root, cursorParams.x, cursorParams.y);

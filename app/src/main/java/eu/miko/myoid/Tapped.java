@@ -1,10 +1,18 @@
-package eu.miko.myoid.StateMachine;
+package eu.miko.myoid;
 
 import com.thalmic.myo.Pose;
 import com.thalmic.myo.Quaternion;
 import com.thalmic.myo.Vector3;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+@Singleton
 class Tapped extends Mode {
+    @Inject
+    public Tapped(Performer performer) {
+        super(performer);
+    }
 
     @Override
     public Event resolvePose(Pose pose) {
