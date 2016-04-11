@@ -31,10 +31,6 @@ public class MyoidAccessibilityService extends AccessibilityService {
 
     protected boolean serviceConnected = false;
 
-    public WindowManager getWindowManager() {
-        return windowManager;
-    }
-
     public static boolean isServiceConnected() {
         return me != null && me.serviceConnected;
     }

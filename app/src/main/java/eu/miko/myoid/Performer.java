@@ -1,16 +1,11 @@
 package eu.miko.myoid;
 
 import android.accessibilityservice.AccessibilityService;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.view.Display;
 import android.view.Gravity;
-import android.view.MotionEvent;
-import android.view.View;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.ImageView;
@@ -26,18 +21,17 @@ import static java.lang.Math.min;
 
 @Singleton
 public class Performer implements IPerformer {
+    private final OptionsController optionsController;
+
     @Inject
-    public Performer(WindowManager windowManager) {
+    public Performer(WindowManager windowManager, OptionsController optionsController) {
         this.windowManager = windowManager;
+        this.optionsController = optionsController;
 
         Display display = windowManager.getDefaultDisplay();
         display.getSize(screenSize);
         initCursor();
     }
-
-    private View optionsWindow;
-    private WindowManager.LayoutParams optionsLayoutParams;
-    private Boolean optionsWindowInitialized = false;
 
     private Myo myo;
 
@@ -122,17 +116,12 @@ public class Performer implements IPerformer {
 
     @Override
     public void displayOptions() {
-        if (!optionsWindowInitialized) {
-            initOptionsWindow();
-            windowManager.addView(optionsWindow, optionsLayoutParams);
-            optionsWindowInitialized = true;
-        }
-        optionsWindow.setVisibility(View.VISIBLE);
+        optionsController.displayOptions();
     }
 
     @Override
     public void dismissOptions() {
-        optionsWindow.setVisibility(View.GONE);
+        optionsController.dismissOptions();
     }
 
     @Override
@@ -173,49 +162,6 @@ public class Performer implements IPerformer {
             } else shortToast("nothing to tap here");
         } else shortToast("nothing here!");
 
-    }
-
-    private void initOptionsWindow() {
-        optionsWindow = new View(mas) {
-            private Rect rect = new Rect();
-            private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-
-            @Override
-            protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-                super.onSizeChanged(w, h, oldw, oldh);
-                rect.set(0, 0, w, h);
-            }
-
-            @Override
-            protected void onDraw(Canvas canvas) {
-                super.onDraw(canvas);
-
-                paint.setStyle(Paint.Style.FILL);
-                paint.setColor(Color.argb(123,0,0,255));
-                canvas.drawRect(rect, paint);
-            }
-        };
-        optionsWindow.setVisibility(View.GONE);
-        optionsWindow.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (event.getAction() == MotionEvent.ACTION_OUTSIDE){
-                    dismissOptions();
-                    return true;
-                }
-                return false;
-            }
-        });
-        optionsLayoutParams = new WindowManager.LayoutParams(
-                screenSize.x - 200, // size
-                screenSize.y - 200,
-                0, // position
-                0,
-                WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-                    | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
-                    | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-                PixelFormat.TRANSLUCENT);
     }
 
     private int keepOnScreenY(int y) {
