@@ -3,14 +3,15 @@ package eu.miko.myoid;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.support.annotation.NonNull;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.inject.Inject;
 
@@ -24,7 +25,10 @@ public class OptionsController {
     private final WindowManager windowManager;
     private final Point screenSize = new Point();
     private final View optionsWindow;
-    private final List<View> optionIcons = new LinkedList<>();
+    private final Map<MainIcon, View> mainIcons = new HashMap<>();
+    private final Map<NavIcon, View> navIcons = new HashMap<>();
+    private double circleRadius;
+    private Point circleCenter;
     WindowManager.LayoutParams optionsLayoutParams;
     Boolean optionsWindowInitialized = false;
     private final MyoidAccessibilityService mas;
@@ -36,23 +40,30 @@ public class OptionsController {
         this.mas = mas;
         optionsWindow = new OptionsWindow(mas);
         windowManager.getDefaultDisplay().getSize(screenSize);
+        calculateUiSizes();
+    }
+
+    private void calculateUiSizes() {
+        iconRadius = (int) (min(screenSize.x, screenSize.y) * 1.0/12);
+        circleRadius = min(screenSize.x, screenSize.y) * 1.0/3;
+        circleCenter = new Point(screenSize.x/2, screenSize.y/2);
     }
 
     public void displayOptions() {
         if (!optionsWindowInitialized) {
             initOptionsWindow();
-            initIcons(N_ICONS);
+            initIcons();
             optionsWindowInitialized = true;
         }
         optionsWindow.setVisibility(View.VISIBLE);
-        for (View icon : optionIcons) {
+        for (View icon : mainIcons.values()) {
             icon.setVisibility(View.VISIBLE);
         }
     }
 
     public void dismissOptions() {
         optionsWindow.setVisibility(View.GONE);
-        for (View icon : optionIcons) {
+        for (View icon : mainIcons.values()) {
             icon.setVisibility(View.GONE);
         }
     }
@@ -83,40 +94,74 @@ public class OptionsController {
         windowManager.addView(optionsWindow, optionsLayoutParams);
     }
 
-    void initIcons(int nIcons) {
-        List<Rect> iconPositions = calculateIconPositions(screenSize, nIcons);
-        for (Rect pos: iconPositions) {
-            ImageView icon = new ImageView(mas);
-            icon.setImageResource(R.mipmap.ic_launcher);
-            WindowManager.LayoutParams params = new WindowManager.LayoutParams(
-                    iconRadius*2, iconRadius*2, //size
-                    pos.left, pos.top,
-                    WindowManager.LayoutParams.TYPE_PHONE,
-                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-                            | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
-                            | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-                    PixelFormat.TRANSLUCENT
-            );
-            params.gravity = Gravity.TOP | Gravity.LEFT;
-            windowManager.addView(icon, params);
-            optionIcons.add(icon);
+    void initIcons() {
+        int i = 0;
+        for (MainIcon iconName : MainIcon.values()) {
+            ImageView icon = initializeIconInCircle(i, MainIcon.values().length);
+            mainIcons.put(iconName, icon);
+            i++;
+        }
+        i = 0;
+        for (NavIcon iconName: NavIcon.values()) {
+            ImageView icon = initializeIconInCircle(i-1, 4);
+            navIcons.put(iconName, icon);
+            i++;
         }
     }
 
-    private List<Rect> calculateIconPositions(Point screenSize, int nIcons) {
-        List<Rect> result = new LinkedList<>();
-        double radius = min(screenSize.x, screenSize.y) * 1.0/3;
-        iconRadius = (int)radius/4;
-        Point circleCenter = new Point(screenSize.x/2, screenSize.y/2);
-        for (int i = 0; i < nIcons; i++) {
-            double angle = (2.0/nIcons)*i;
-            double dx = radius*sin(angle * PI);
-            double dy = radius*cos(angle * PI);
-            Point iconCenter = new Point(circleCenter);
-            iconCenter.offset((int) dx, (int) dy);
-            Rect iconRect = new Rect(iconCenter.x-iconRadius, iconCenter.y-iconRadius,iconCenter.x+iconRadius, iconCenter.y+iconRadius);
-            result.add(iconRect);
-        }
-        return result;
+    @NonNull
+    private ImageView initializeIconInCircle(int i, int nIcons) {
+        ImageView icon = createIconImageView();
+        WindowManager.LayoutParams params = createIconLayoutParams(i, nIcons);
+        windowManager.addView(icon, params);
+        return icon;
+    }
+
+    @NonNull
+    private WindowManager.LayoutParams createIconLayoutParams(int i, int nIcons) {
+        Rect pos = calculateIconPositions(i, nIcons);
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+                iconRadius*2, iconRadius*2, //size
+                pos.left, pos.top,
+                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                        | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
+                        | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                PixelFormat.TRANSLUCENT
+        );
+        params.gravity = Gravity.TOP | Gravity.LEFT;
+        return params;
+    }
+
+    @NonNull
+    private ImageView createIconImageView() {
+        ImageView icon = new ImageView(mas);
+        icon.setImageResource(R.mipmap.ic_launcher);
+        icon.setVisibility(View.GONE);
+        return icon;
+    }
+
+    private Rect calculateIconPositions(int index, int nIcons) {
+        double angle = (2.0/nIcons)*index;
+        double dx = circleRadius*sin(angle * PI);
+        double dy = -circleRadius*cos(angle * PI);
+        Point center = new Point(circleCenter);
+        center.offset((int) dx, (int) dy);
+        Rect iconRect = new Rect(center.x-iconRadius, center.y-iconRadius, center.x+iconRadius, center.y+iconRadius);
+        return iconRect;
+    }
+
+    private interface Icon {
+    }
+    private enum MainIcon implements Icon {
+        SEARCH,
+        MEDIA_MOUSE,
+        NAV,
+        QS
+    }
+    private enum NavIcon implements Icon {
+        BACK,
+        HOME,
+        RECENT
     }
 }
