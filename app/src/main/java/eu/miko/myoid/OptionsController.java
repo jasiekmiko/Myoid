@@ -1,68 +1,63 @@
 package eu.miko.myoid;
 
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.Rect;
-import android.view.Display;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.ImageView;
+
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.inject.Inject;
 
+import static java.lang.Math.PI;
+import static java.lang.Math.cos;
+import static java.lang.Math.min;
+import static java.lang.Math.sin;
+
 public class OptionsController {
+    private static final int N_ICONS = 4;
     private final WindowManager windowManager;
     private final Point screenSize = new Point();
-    View optionsWindow;
+    private final View optionsWindow;
+    private final List<View> optionIcons = new LinkedList<>();
     WindowManager.LayoutParams optionsLayoutParams;
     Boolean optionsWindowInitialized = false;
     private final MyoidAccessibilityService mas;
+    private int iconRadius;
 
     @Inject
     public OptionsController(WindowManager windowManager, MyoidAccessibilityService mas) {
         this.windowManager = windowManager;
         this.mas = mas;
-
-        Display display = windowManager.getDefaultDisplay();
-        display.getSize(screenSize);
+        optionsWindow = new OptionsWindow(mas);
+        windowManager.getDefaultDisplay().getSize(screenSize);
     }
 
     public void displayOptions() {
         if (!optionsWindowInitialized) {
             initOptionsWindow();
-            windowManager.addView(optionsWindow, optionsLayoutParams);
+            initIcons(N_ICONS);
             optionsWindowInitialized = true;
         }
         optionsWindow.setVisibility(View.VISIBLE);
+        for (View icon : optionIcons) {
+            icon.setVisibility(View.VISIBLE);
+        }
     }
 
     public void dismissOptions() {
         optionsWindow.setVisibility(View.GONE);
+        for (View icon : optionIcons) {
+            icon.setVisibility(View.GONE);
+        }
     }
 
     void initOptionsWindow() {
-        optionsWindow = new View(mas) {
-            private Rect rect = new Rect();
-            private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-
-            @Override
-            protected void onSizeChanged(int w, int h, int oldWidth, int oldHeight) {
-                super.onSizeChanged(w, h, oldWidth, oldHeight);
-                rect.set(0, 0, w, h);
-            }
-
-            @Override
-            protected void onDraw(Canvas canvas) {
-                super.onDraw(canvas);
-
-                paint.setStyle(Paint.Style.FILL);
-                paint.setColor(Color.argb(123, 0, 0, 255));
-                canvas.drawRect(rect, paint);
-            }
-        };
         optionsWindow.setVisibility(View.GONE);
         optionsWindow.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -77,12 +72,51 @@ public class OptionsController {
         optionsLayoutParams = new WindowManager.LayoutParams(
                 screenSize.x - 200, // size
                 screenSize.y - 200,
-                0, // position
-                0,
+                100, // offsets
+                100,
                 WindowManager.LayoutParams.TYPE_PHONE,
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
                         | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
                         | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
+        optionsLayoutParams.gravity = Gravity.TOP | Gravity.START;
+        windowManager.addView(optionsWindow, optionsLayoutParams);
+    }
+
+    void initIcons(int nIcons) {
+        List<Rect> iconPositions = calculateIconPositions(screenSize, nIcons);
+        for (Rect pos: iconPositions) {
+            ImageView icon = new ImageView(mas);
+            icon.setImageResource(R.mipmap.ic_launcher);
+            WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+                    iconRadius*2, iconRadius*2, //size
+                    pos.left, pos.top,
+                    WindowManager.LayoutParams.TYPE_PHONE,
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                            | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
+                            | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                    PixelFormat.TRANSLUCENT
+            );
+            params.gravity = Gravity.TOP | Gravity.LEFT;
+            windowManager.addView(icon, params);
+            optionIcons.add(icon);
+        }
+    }
+
+    private List<Rect> calculateIconPositions(Point screenSize, int nIcons) {
+        List<Rect> result = new LinkedList<>();
+        double radius = min(screenSize.x, screenSize.y) * 1.0/3;
+        iconRadius = (int)radius/4;
+        Point circleCenter = new Point(screenSize.x/2, screenSize.y/2);
+        for (int i = 0; i < nIcons; i++) {
+            double angle = (2.0/nIcons)*i;
+            double dx = radius*sin(angle * PI);
+            double dy = radius*cos(angle * PI);
+            Point iconCenter = new Point(circleCenter);
+            iconCenter.offset((int) dx, (int) dy);
+            Rect iconRect = new Rect(iconCenter.x-iconRadius, iconCenter.y-iconRadius,iconCenter.x+iconRadius, iconCenter.y+iconRadius);
+            result.add(iconRect);
+        }
+        return result;
     }
 }
