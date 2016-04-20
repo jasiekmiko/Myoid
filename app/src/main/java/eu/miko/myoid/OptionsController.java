@@ -12,7 +12,7 @@ import android.widget.ImageView;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -23,6 +23,7 @@ import static java.lang.Math.sin;
 import static java.lang.Math.sqrt;
 
 public class OptionsController {
+    private static final int THREASHOLD = 10;
     private final WindowManager windowManager;
     private final Point screenSize = new Point();
     private View optionsWindow;
@@ -120,17 +121,42 @@ public class OptionsController {
         windowManager.updateViewLayout(pointer, pointerParams);
     }
 
-    public void movePointerBy(int x, int y) {
+    public boolean movePointerBy(int x, int y) {
         if (graphicsInitialized) {
             pointerParams.x = pointerParams.x + x;
             pointerParams.y = pointerParams.y + y;
             keepPointerInCircle();
             windowManager.updateViewLayout(pointer, pointerParams);
+
+            Icon target = checkIfWithinThresholdOfAnIcon();
+            if (target != null) return true;
         }
+        return false;
+    }
+
+    private Icon checkIfWithinThresholdOfAnIcon() {
+        Point myPos = new Point(pointerParams.x, pointerParams.y);
+        for (Icon icon : currentSet.getIcons()) {
+            View view = currentSet.getView(icon);
+            Point iconPos = pointFromView(view);
+            double dist = distance(myPos, iconPos);
+            if (dist > THREASHOLD) return icon;
+        }
+        return null;
+    }
+
+    @NonNull
+    private Point pointFromView(View view) {
+        return new Point((int) view.getX(), (int) view.getY());
+    }
+
+    private double distance(Point p1, Point p2) {
+        return sqrt((p2.x - p1.x)^2 + (p2.y - p1.y)^2);
     }
 
     private void keepPointerInCircle() {
-        double dist = sqrt((pointerParams.x - circleCenter.x)^2 + (pointerParams.y - circleCenter.y)^2);
+        Point myPos = new Point(pointerParams.x, pointerParams.y);
+        double dist = distance(myPos, circleCenter);
         if (dist > circleRadius) {
             double scale = 1.0/dist;
             pointerParams.x = (int) (circleCenter.x + scale*pointerParams.x);
@@ -209,8 +235,16 @@ public class OptionsController {
             return views.values();
         }
 
+        public Set<Icon> getIcons() {
+            return views.keySet();
+        }
+
         public void addView(Icon icon, View view) {
             views.put(icon, view);
+        }
+
+        public View getView(Icon icon) {
+            return views.get(icon);
         }
     }
 
