@@ -27,9 +27,9 @@ public class InputResolver {
     private IPerformer performer;
 
     public void resolvePose(Pose pose) {
+        Log.d(TAG, "Pose detected: " + pose);
         Event resultingEvent = getCurrentMode().resolvePose(pose);
         myoidStateMachine.apply(resultingEvent);
-        Log.d(TAG, "Pose detected: " + pose);
     }
 
     public void resolveOrientation(Quaternion rotation) {

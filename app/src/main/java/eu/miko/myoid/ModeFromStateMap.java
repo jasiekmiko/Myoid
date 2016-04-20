@@ -11,10 +11,10 @@ import javax.inject.Singleton;
 
 @Singleton
 public class ModeFromStateMap {
-    Mode mouse;
-    Mode tapped;
-    Mode optionsDoorway;
-    Mode options;
+    Mouse mouse;
+    Tapped tapped;
+    OptionsDoorway optionsDoorway;
+    Options options;
 
     @Inject
     public ModeFromStateMap(Mouse mouse, Tapped tapped, OptionsDoorway optionsDoorway, Options options) {
@@ -37,7 +37,6 @@ public class ModeFromStateMap {
             default:
                 return new Mode(null) {
                     final private String TAG = "UnimplementedMode";
-
                     @Override
                     public Event resolvePose(Pose pose) {
                         Log.w(TAG, "resolvePose called on an unimplemented Event");
