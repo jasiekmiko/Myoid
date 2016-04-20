@@ -109,12 +109,14 @@ public class OptionsController {
             WindowManager.LayoutParams.TYPE_PHONE,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT);
+        windowManager.addView(pointer, pointerParams);
         resetPointerToCenter();
     }
 
     private void resetPointerToCenter() {
         pointerParams.x = circleCenter.x;
         pointerParams.y = circleCenter.y;
+        windowManager.updateViewLayout(pointer, pointerParams);
     }
 
     public void movePointer(int x, int y) {
