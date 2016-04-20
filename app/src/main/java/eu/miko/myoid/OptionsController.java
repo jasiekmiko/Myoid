@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,8 +27,7 @@ public class OptionsController {
     private final Point screenSize = new Point();
     private View optionsWindow;
     private ImageView pointer;
-    private final Map<MainIcon, View> mainIcons = new HashMap<>();
-    private final Map<NavIcon, View> navIcons = new HashMap<>();
+    private IconSet currentSet = IconSet.MAIN;
     private double circleRadius;
     private Point circleCenter;
     WindowManager.LayoutParams optionsLayoutParams;
@@ -56,7 +56,7 @@ public class OptionsController {
             graphicsInitialized = true;
         }
         optionsWindow.setVisibility(View.VISIBLE);
-        for (View icon : mainIcons.values()) {
+        for (View icon : currentSet.getViews()) {
             icon.setVisibility(View.VISIBLE);
         }
     }
@@ -69,7 +69,7 @@ public class OptionsController {
 
     public void dismissOptions() {
         optionsWindow.setVisibility(View.GONE);
-        for (View icon : mainIcons.values()) {
+        for (View icon : currentSet.getViews()) {
             icon.setVisibility(View.GONE);
         }
     }
@@ -142,13 +142,13 @@ public class OptionsController {
         int i = 0;
         for (MainIcon iconName : MainIcon.values()) {
             ImageView icon = initializeIconInCircle(i, MainIcon.values().length);
-            mainIcons.put(iconName, icon);
+            IconSet.MAIN.addView(iconName, icon);
             i++;
         }
         i = 0;
         for (NavIcon iconName: NavIcon.values()) {
             ImageView icon = initializeIconInCircle(i-1, 4);
-            navIcons.put(iconName, icon);
+            IconSet.NAV.addView(iconName, icon);
             i++;
         }
     }
@@ -193,6 +193,25 @@ public class OptionsController {
         center.offset((int) dx, (int) dy);
         Rect iconRect = new Rect(center.x-iconRadius, center.y-iconRadius, center.x+iconRadius, center.y+iconRadius);
         return iconRect;
+    }
+
+    private enum IconSet {
+        MAIN,
+        NAV;
+
+        private HashMap<Icon, View> views;
+
+        IconSet() {
+            views = new HashMap<>();
+        }
+
+        public Collection<View> getViews() {
+            return views.values();
+        }
+
+        public void addView(Icon icon, View view) {
+            views.put(icon, view);
+        }
     }
 
     private interface Icon {
