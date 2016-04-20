@@ -19,6 +19,7 @@ import static java.lang.Math.PI;
 import static java.lang.Math.cos;
 import static java.lang.Math.min;
 import static java.lang.Math.sin;
+import static java.lang.Math.sqrt;
 
 public class OptionsController {
     private final WindowManager windowManager;
@@ -119,11 +120,21 @@ public class OptionsController {
         windowManager.updateViewLayout(pointer, pointerParams);
     }
 
-    public void movePointer(int x, int y) {
+    public void movePointerBy(int x, int y) {
         if (graphicsInitialized) {
-            pointerParams.x = x;
-            pointerParams.y = y;
+            pointerParams.x = pointerParams.x + x;
+            pointerParams.y = pointerParams.y + y;
+            keepPointerInCircle();
             windowManager.updateViewLayout(pointer, pointerParams);
+        }
+    }
+
+    private void keepPointerInCircle() {
+        double dist = sqrt((pointerParams.x - circleCenter.x)^2 + (pointerParams.y - circleCenter.y)^2);
+        if (dist > circleRadius) {
+            double scale = 1.0/dist;
+            pointerParams.x = (int) (circleCenter.x + scale*pointerParams.x);
+            pointerParams.y = (int) (circleCenter.y + scale*pointerParams.y);
         }
     }
 

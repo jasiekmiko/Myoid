@@ -169,8 +169,8 @@ public class Performer implements IPerformer {
     }
 
     @Override
-    public void moveOptionsPointer(int x, int y) {
-        optionsController.movePointer(x, y);
+    public void moveOptionsPointerBy(int x, int y) {
+        optionsController.movePointerBy(x, y);
     }
 
     private int keepOnScreenY(int y) {

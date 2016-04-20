@@ -37,5 +37,5 @@ public interface IPerformer {
 
     void mouseTap();
 
-    void moveOptionsPointer(int x, int y);
+    void moveOptionsPointerBy(int x, int y);
 }

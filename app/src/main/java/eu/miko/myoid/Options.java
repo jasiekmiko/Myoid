@@ -36,7 +36,7 @@ public class Options extends Mode {
         float pitch = (float) Math.toDegrees(Quaternion.pitch(rotation));
         float yaw = (float) Math.toDegrees(Quaternion.yaw(rotation));
 
-        performer.moveOptionsPointer(xMovement(yaw), yMovement(pitch));
+        performer.moveOptionsPointerBy(xMovement(yaw), yMovement(pitch));
         return null;
     }
 
