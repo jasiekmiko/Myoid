@@ -36,4 +36,6 @@ public interface IPerformer {
     void mouseScroll(boolean down);
 
     void mouseTap();
+
+    void moveOptionsPointer(int x, int y);
 }

@@ -21,16 +21,17 @@ import static java.lang.Math.min;
 import static java.lang.Math.sin;
 
 public class OptionsController {
-    private static final int N_ICONS = 4;
     private final WindowManager windowManager;
     private final Point screenSize = new Point();
-    private final View optionsWindow;
+    private View optionsWindow;
+    private ImageView pointer;
     private final Map<MainIcon, View> mainIcons = new HashMap<>();
     private final Map<NavIcon, View> navIcons = new HashMap<>();
     private double circleRadius;
     private Point circleCenter;
     WindowManager.LayoutParams optionsLayoutParams;
-    Boolean optionsWindowInitialized = false;
+    private WindowManager.LayoutParams pointerParams;
+    Boolean graphicsInitialized = false;
     private final MyoidAccessibilityService mas;
     private int iconRadius;
 
@@ -38,7 +39,6 @@ public class OptionsController {
     public OptionsController(WindowManager windowManager, MyoidAccessibilityService mas) {
         this.windowManager = windowManager;
         this.mas = mas;
-        optionsWindow = new OptionsWindow(mas);
         windowManager.getDefaultDisplay().getSize(screenSize);
         calculateUiSizes();
     }
@@ -50,15 +50,20 @@ public class OptionsController {
     }
 
     public void displayOptions() {
-        if (!optionsWindowInitialized) {
-            initOptionsWindow();
-            initIcons();
-            optionsWindowInitialized = true;
+        if (!graphicsInitialized) {
+            initializeGraphics();
+            graphicsInitialized = true;
         }
         optionsWindow.setVisibility(View.VISIBLE);
         for (View icon : mainIcons.values()) {
             icon.setVisibility(View.VISIBLE);
         }
+    }
+
+    private void initializeGraphics() {
+        initOptionsWindow();
+        initIcons();
+        initPointer();
     }
 
     public void dismissOptions() {
@@ -69,6 +74,7 @@ public class OptionsController {
     }
 
     void initOptionsWindow() {
+        optionsWindow = new OptionsWindow(mas);
         optionsWindow.setVisibility(View.GONE);
         optionsWindow.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -92,6 +98,31 @@ public class OptionsController {
                 PixelFormat.TRANSLUCENT);
         optionsLayoutParams.gravity = Gravity.TOP | Gravity.START;
         windowManager.addView(optionsWindow, optionsLayoutParams);
+    }
+
+    private void initPointer() {
+        pointer = new ImageView(mas);
+        pointer.setImageResource(R.mipmap.ic_launcher);
+        pointerParams = new WindowManager.LayoutParams(
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            WindowManager.LayoutParams.TYPE_PHONE,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+            PixelFormat.TRANSLUCENT);
+        resetPointerToCenter();
+    }
+
+    private void resetPointerToCenter() {
+        pointerParams.x = circleCenter.x;
+        pointerParams.y = circleCenter.y;
+    }
+
+    public void movePointer(int x, int y) {
+        if (graphicsInitialized) {
+            pointerParams.x = x;
+            pointerParams.y = y;
+            windowManager.updateViewLayout(pointer, pointerParams);
+        }
     }
 
     void initIcons() {

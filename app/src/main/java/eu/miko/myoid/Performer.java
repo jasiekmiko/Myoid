@@ -168,6 +168,11 @@ public class Performer implements IPerformer {
 
     }
 
+    @Override
+    public void moveOptionsPointer(int x, int y) {
+        optionsController.movePointer(x, y);
+    }
+
     private int keepOnScreenY(int y) {
         return max(0, min(y, screenSize.y));
     }
