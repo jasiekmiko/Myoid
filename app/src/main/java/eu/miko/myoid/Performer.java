@@ -6,6 +6,7 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.view.Display;
 import android.view.Gravity;
+import android.view.View;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.ImageView;
@@ -110,8 +111,11 @@ public class Performer implements IPerformer {
 
     @Override
     public void displayCursor() {
-        windowManager.addView(cursor, cursorParams);
-        cursorInitialized = true;
+        if(!cursorInitialized) {
+            windowManager.addView(cursor, cursorParams);
+            cursorInitialized = true;
+        }
+        cursor.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -135,7 +139,7 @@ public class Performer implements IPerformer {
 
     @Override
     public void hideCursor() {
-        if (cursor != null) windowManager.removeView(cursor);
+        cursor.setVisibility(View.GONE);
     }
 
     @Override
