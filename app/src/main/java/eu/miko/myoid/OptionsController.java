@@ -19,6 +19,8 @@ import javax.inject.Inject;
 import static java.lang.Math.PI;
 import static java.lang.Math.cos;
 import static java.lang.Math.min;
+import static java.lang.Math.pow;
+import static java.lang.Math.signum;
 import static java.lang.Math.sin;
 import static java.lang.Math.sqrt;
 
@@ -58,6 +60,7 @@ public class OptionsController {
         }
         optionsWindow.setVisibility(View.VISIBLE);
         showCurrentSet();
+        pointer.setVisibility(View.VISIBLE);
     }
 
     private void initializeGraphics() {
@@ -69,6 +72,11 @@ public class OptionsController {
     public void dismissOptions() {
         optionsWindow.setVisibility(View.GONE);
         hideCurrentSet();
+        hidePointer();
+    }
+
+    private void hidePointer() {
+        pointer.setVisibility(View.GONE);
     }
 
     void initOptionsWindow() {
@@ -105,9 +113,11 @@ public class OptionsController {
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.TYPE_PHONE,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT);
         windowManager.addView(pointer, pointerParams);
+        pointerParams.gravity = Gravity.TOP | Gravity.LEFT;
         resetPointerToCenter();
     }
 
@@ -119,14 +129,22 @@ public class OptionsController {
 
     public Icon movePointerBy(int x, int y) {
         if (graphicsInitialized) {
-            pointerParams.x = pointerParams.x + x;
-            pointerParams.y = pointerParams.y + y;
-            keepPointerInCircle();
-            windowManager.updateViewLayout(pointer, pointerParams);
-
+            int newX = pointerParams.x + x;
+            int newY = pointerParams.y + y;
+            if (!exitsBoundary(newX, newY)){
+                pointerParams.x = newX;
+                pointerParams.y = newY;
+                windowManager.updateViewLayout(pointer, pointerParams);
+            }
             return checkIfWithinThresholdOfAnIcon();
         }
         return null;
+    }
+
+    private boolean exitsBoundary(int newX, int newY) {
+        Point newPos = new Point(newX, newY);
+        double dist = distance(newPos, circleCenter);
+        return dist > circleRadius*1.5;
     }
 
     void showIconSet(IconSet iconSet) {
@@ -164,16 +182,19 @@ public class OptionsController {
     }
 
     private double distance(Point p1, Point p2) {
-        return sqrt((p2.x - p1.x)^2 + (p2.y - p1.y)^2);
+        return sqrt(pow(p2.x - p1.x, 2) + pow(p2.y - p1.y, 2));
     }
 
     private void keepPointerInCircle() {
         Point myPos = new Point(pointerParams.x, pointerParams.y);
         double dist = distance(myPos, circleCenter);
-        if (dist > circleRadius) {
-            double scale = 1.0/dist;
-            pointerParams.x = (int) (circleCenter.x + scale*pointerParams.x);
-            pointerParams.y = (int) (circleCenter.y + scale*pointerParams.y);
+        if (dist > 1.5*circleRadius) {
+            double dy = pointerParams.y - circleCenter.y;
+            double dx = pointerParams.x - circleCenter.x;
+            double slope = dy/dx;
+            double angle = Math.atan(slope);
+            pointerParams.x = (int) (circleRadius + dx*cos(angle) * signum(pointerParams.x - circleCenter.x));
+            pointerParams.y = (int) (circleRadius + dy*sin(angle) * signum(pointerParams.y - circleCenter.y));
         }
     }
 

@@ -63,7 +63,7 @@ public class InputResolver {
     private StateMachine<State, Event> createMyoidStateMachine() {
         return new StateMachineBuilder<State, Event>(State.MOUSE)
                 //MOUSE
-                .onEnter(State.MOUSE, runnableEntryNotifier("Mouse"))
+                .onEnter(State.MOUSE, new runnableShowMouse())
                 .addTransition(State.MOUSE, Event.FIST, State.TAPPED)
                 .addTransition(State.MOUSE, Event.SPREAD, State.OPTIONS_DOORWAY_FROM_MOUSE)
                 //OPTIONS_DOORWAY_FROM_MOUSE
@@ -81,6 +81,7 @@ public class InputResolver {
                 //OPTIONS_FROM_MOUSE
                 .onEnter(State.OPTIONS_FROM_MOUSE, new runnableOpenOptions())
                 .addTransition(State.OPTIONS_FROM_MOUSE, Event.LEFT, State.MOUSE)
+                .onExit(State.OPTIONS_FROM_MOUSE, new runnableCloseOptions())
                 .build();
     }
 
@@ -93,10 +94,26 @@ public class InputResolver {
         };
     }
 
-    private class runnableOpenOptions implements Runnable {
+    private class runnableShowMouse implements Runnable {
         @Override
         public void run() {
+            performer.displayCursor();
+        }
+    }
+    private class runnableOpenOptions implements Runnable {
+
+        @Override
+        public void run() {
+            performer.hideCursor();
             performer.displayOptions();
         }
+    }
+    private class runnableCloseOptions implements Runnable {
+
+        @Override
+        public void run() {
+            performer.dismissOptions();
+        }
+
     }
 }
