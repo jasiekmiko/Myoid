@@ -171,12 +171,8 @@ public class Performer implements IPerformer {
     @Override
     public boolean moveOptionsPointerBy(int x, int y) {
         Icon targetIcon = optionsController.movePointerBy(x, y);
-        performIconAction(targetIcon);
-        return true;
-    }
-
-    private boolean performIconAction(Icon target) {
-        return false;
+        boolean optionSelected = performOption(targetIcon);
+        return optionSelected;
     }
 
     private int keepOnScreenY(int y) {
@@ -225,5 +221,32 @@ public class Performer implements IPerformer {
             if (maybeClickable != null) return maybeClickable;
         }
         return null;
+    }
+
+    private boolean performOption(Icon target) {
+        if (target instanceof OptionsController.MainIcon)
+            switch ((OptionsController.MainIcon) target) {
+                case SEARCH:
+                    break;
+                case MEDIA_MOUSE:
+                    break;
+                case NAV:
+                    optionsController.showIconSet(OptionsController.IconSet.NAV);
+                case QS:
+                    break;
+            }
+        else if (target instanceof OptionsController.NavIcon){
+            switch ((OptionsController.NavIcon) target) {
+                case BACK:
+                    goBack();
+                    return true;
+                case HOME:
+                    goHome();
+                    return true;
+                case RECENT:
+                    break;
+            }
+        }
+        return false;
     }
 }

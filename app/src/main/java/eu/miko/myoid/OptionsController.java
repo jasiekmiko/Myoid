@@ -129,32 +129,7 @@ public class OptionsController {
         return null;
     }
 
-    private boolean performOption(Icon target) {
-        if (target instanceof MainIcon)
-            switch ((MainIcon) target) {
-                case SEARCH:
-                    break;
-                case MEDIA_MOUSE:
-                    break;
-                case NAV:
-                    showIconSet(IconSet.NAV);
-                case QS:
-                    break;
-            }
-        else if (target instanceof NavIcon){
-            switch ((NavIcon) target) {
-                case BACK:
-                    break;
-                case HOME:
-                    break;
-                case RECENT:
-                    break;
-            }
-        }
-        return true;
-    }
-
-    private void showIconSet(IconSet iconSet) {
+    void showIconSet(IconSet iconSet) {
         hideCurrentSet();
         currentSet = iconSet;
         showCurrentSet();
@@ -259,7 +234,7 @@ public class OptionsController {
         return iconRect;
     }
 
-    private enum IconSet {
+    enum IconSet {
         MAIN,
         NAV;
 
@@ -286,13 +261,13 @@ public class OptionsController {
         }
     }
 
-    private enum MainIcon implements Icon {
+    enum MainIcon implements Icon {
         SEARCH,
         MEDIA_MOUSE,
         NAV,
         QS
     }
-    private enum NavIcon implements Icon {
+    enum NavIcon implements Icon {
         BACK,
         HOME,
         RECENT
