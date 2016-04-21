@@ -25,7 +25,7 @@ import static java.lang.Math.sin;
 import static java.lang.Math.sqrt;
 
 public class OptionsController {
-    private static final int THREASHOLD = 10;
+    private static final int THRESHOLD = 50;
     private final WindowManager windowManager;
     private final Point screenSize = new Point();
     private View optionsWindow;
@@ -59,6 +59,7 @@ public class OptionsController {
             graphicsInitialized = true;
         }
         optionsWindow.setVisibility(View.VISIBLE);
+        currentSet = IconSet.MAIN;
         showCurrentSet();
         pointer.setVisibility(View.VISIBLE);
     }
@@ -121,7 +122,7 @@ public class OptionsController {
         resetPointerToCenter();
     }
 
-    private void resetPointerToCenter() {
+    void resetPointerToCenter() {
         pointerParams.x = circleCenter.x;
         pointerParams.y = circleCenter.y;
         windowManager.updateViewLayout(pointer, pointerParams);
@@ -171,14 +172,15 @@ public class OptionsController {
             View view = currentSet.getView(icon);
             Point iconPos = pointFromView(view);
             double dist = distance(myPos, iconPos);
-            if (dist > THREASHOLD) return icon;
+            if (dist < THRESHOLD) return icon;
         }
         return null;
     }
 
     @NonNull
     private Point pointFromView(View view) {
-        return new Point((int) view.getX(), (int) view.getY());
+        WindowManager.LayoutParams lp = (WindowManager.LayoutParams) view.getLayoutParams();
+        return new Point(lp.x, lp.y);
     }
 
     private double distance(Point p1, Point p2) {
