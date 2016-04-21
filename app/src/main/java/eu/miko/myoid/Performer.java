@@ -4,6 +4,7 @@ import android.accessibilityservice.AccessibilityService;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.View;
@@ -22,6 +23,7 @@ import static java.lang.Math.min;
 
 @Singleton
 public class Performer implements IPerformer {
+    private static final String TAG = Performer.class.getName();
     private final OptionsController optionsController;
 
     @Inject
@@ -85,11 +87,13 @@ public class Performer implements IPerformer {
     @Override
     public void goBack() {
         mas.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
+        Log.d(TAG, "Back global action performed.");
     }
 
     @Override
     public void goHome() {
         mas.performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME);
+        Log.d(TAG, "Home global action performed.");
     }
 
     @Override

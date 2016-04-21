@@ -81,6 +81,7 @@ public class InputResolver {
                 //OPTIONS_FROM_MOUSE
                 .onEnter(State.OPTIONS_FROM_MOUSE, new runnableOpenOptions())
                 .addTransition(State.OPTIONS_FROM_MOUSE, Event.LEFT, State.MOUSE)
+                .addTransition(State.OPTIONS_FROM_MOUSE,Event.OPTION_SELECTED, State.MOUSE)
                 .onExit(State.OPTIONS_FROM_MOUSE, new runnableCloseOptions())
                 .build();
     }

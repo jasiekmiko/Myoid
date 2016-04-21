@@ -37,7 +37,8 @@ public class Options extends Mode {
         float yaw = (float) Math.toDegrees(Quaternion.yaw(rotation));
 
         boolean optionSelected = performer.moveOptionsPointerBy(xMovement(yaw), yMovement(pitch));
-        if (optionSelected) return Event.OPTION_SELECTED;
+        if (optionSelected)
+            return Event.OPTION_SELECTED;
         else return null;
     }
 
