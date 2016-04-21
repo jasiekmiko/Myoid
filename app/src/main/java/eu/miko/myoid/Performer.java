@@ -170,7 +170,13 @@ public class Performer implements IPerformer {
 
     @Override
     public boolean moveOptionsPointerBy(int x, int y) {
-        return optionsController.movePointerBy(x, y);
+        Icon targetIcon = optionsController.movePointerBy(x, y);
+        performIconAction(targetIcon);
+        return true;
+    }
+
+    private boolean performIconAction(Icon target) {
+        return false;
     }
 
     private int keepOnScreenY(int y) {

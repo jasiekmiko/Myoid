@@ -57,9 +57,7 @@ public class OptionsController {
             graphicsInitialized = true;
         }
         optionsWindow.setVisibility(View.VISIBLE);
-        for (View icon : currentSet.getViews()) {
-            icon.setVisibility(View.VISIBLE);
-        }
+        showCurrentSet();
     }
 
     private void initializeGraphics() {
@@ -70,9 +68,7 @@ public class OptionsController {
 
     public void dismissOptions() {
         optionsWindow.setVisibility(View.GONE);
-        for (View icon : currentSet.getViews()) {
-            icon.setVisibility(View.GONE);
-        }
+        hideCurrentSet();
     }
 
     void initOptionsWindow() {
@@ -121,17 +117,59 @@ public class OptionsController {
         windowManager.updateViewLayout(pointer, pointerParams);
     }
 
-    public boolean movePointerBy(int x, int y) {
+    public Icon movePointerBy(int x, int y) {
         if (graphicsInitialized) {
             pointerParams.x = pointerParams.x + x;
             pointerParams.y = pointerParams.y + y;
             keepPointerInCircle();
             windowManager.updateViewLayout(pointer, pointerParams);
 
-            Icon target = checkIfWithinThresholdOfAnIcon();
-            if (target != null) return true;
+            return checkIfWithinThresholdOfAnIcon();
         }
-        return false;
+        return null;
+    }
+
+    private boolean performOption(Icon target) {
+        if (target instanceof MainIcon)
+            switch ((MainIcon) target) {
+                case SEARCH:
+                    break;
+                case MEDIA_MOUSE:
+                    break;
+                case NAV:
+                    showIconSet(IconSet.NAV);
+                case QS:
+                    break;
+            }
+        else if (target instanceof NavIcon){
+            switch ((NavIcon) target) {
+                case BACK:
+                    break;
+                case HOME:
+                    break;
+                case RECENT:
+                    break;
+            }
+        }
+        return true;
+    }
+
+    private void showIconSet(IconSet iconSet) {
+        hideCurrentSet();
+        currentSet = iconSet;
+        showCurrentSet();
+    }
+
+    private void showCurrentSet() {
+        for (View view : currentSet.getViews()) {
+            view.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void hideCurrentSet() {
+        for (View view : currentSet.getViews()) {
+            view.setVisibility(View.GONE);
+        }
     }
 
     private Icon checkIfWithinThresholdOfAnIcon() {
@@ -248,8 +286,6 @@ public class OptionsController {
         }
     }
 
-    private interface Icon {
-    }
     private enum MainIcon implements Icon {
         SEARCH,
         MEDIA_MOUSE,
