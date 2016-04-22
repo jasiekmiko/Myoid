@@ -187,19 +187,6 @@ public class OptionsController {
         return sqrt(pow(p2.x - p1.x, 2) + pow(p2.y - p1.y, 2));
     }
 
-    private void keepPointerInCircle() {
-        Point myPos = new Point(pointerParams.x, pointerParams.y);
-        double dist = distance(myPos, circleCenter);
-        if (dist > 1.5*circleRadius) {
-            double dy = pointerParams.y - circleCenter.y;
-            double dx = pointerParams.x - circleCenter.x;
-            double slope = dy/dx;
-            double angle = Math.atan(slope);
-            pointerParams.x = (int) (circleRadius + dx*cos(angle) * signum(pointerParams.x - circleCenter.x));
-            pointerParams.y = (int) (circleRadius + dy*sin(angle) * signum(pointerParams.y - circleCenter.y));
-        }
-    }
-
     void initIcons() {
         int i = 0;
         for (MainIcon iconName : MainIcon.values()) {
