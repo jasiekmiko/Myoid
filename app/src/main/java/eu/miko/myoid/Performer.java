@@ -1,9 +1,11 @@
 package eu.miko.myoid;
 
 import android.accessibilityservice.AccessibilityService;
+import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.speech.RecognizerIntent;
 import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
@@ -235,7 +237,8 @@ public class Performer implements IPerformer {
         if (target instanceof OptionsController.MainIcon)
             switch ((OptionsController.MainIcon) target) {
                 case SEARCH:
-                    break;
+                    openVoiceSearch();
+                    return true;
                 case MEDIA_MOUSE:
                     break;
                 case NAV:
@@ -256,5 +259,11 @@ public class Performer implements IPerformer {
             }
         }
         return false;
+    }
+
+    private void openVoiceSearch() {
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        mas.startActivity(intent);
     }
 }
