@@ -250,6 +250,7 @@ public class Performer implements IPerformer {
                     optionsController.showIconSet(OptionsController.IconSet.NAV);
                     break;
                 case QS:
+                    optionsController.showIconSet(OptionsController.IconSet.QS);
                     break;
             }
         else if (target instanceof OptionsController.NavIcon)
@@ -261,6 +262,17 @@ public class Performer implements IPerformer {
                     goHome();
                     return Event.OPTION_SELECTED;
                 case RECENT:
+                    break;
+            }
+        else if (target instanceof OptionsController.QsIcon)
+            switch ((OptionsController.QsIcon) target) {
+                case WIFI:
+                    break;
+                case TORCH:
+                    break;
+                case MUTE:
+                    break;
+                case GPS:
                     break;
             }
         return null;

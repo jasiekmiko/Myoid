@@ -195,9 +195,15 @@ public class OptionsController {
             i++;
         }
         i = 0;
-        for (NavIcon iconName: NavIcon.values()) {
+        for (NavIcon iconName : NavIcon.values()) {
             ImageView icon = initializeIconInCircle(i-1, 4);
             IconSet.NAV.addView(iconName, icon);
+            i++;
+        }
+        i = 0;
+        for (QsIcon iconName : QsIcon.values()) {
+            ImageView icon = initializeIconInCircle(i, QsIcon.values().length);
+            IconSet.QS.addView(iconName, icon);
             i++;
         }
     }
@@ -252,7 +258,8 @@ public class OptionsController {
 
     enum IconSet {
         MAIN,
-        NAV;
+        NAV,
+        QS;
 
         private HashMap<Icon, View> views;
 
@@ -287,5 +294,11 @@ public class OptionsController {
         BACK,
         HOME,
         RECENT
+    }
+    enum QsIcon implements Icon {
+        WIFI,
+        TORCH,
+        MUTE,
+        GPS
     }
 }
