@@ -244,6 +244,12 @@ public class OptionsController {
         return iconRect;
     }
 
+    public boolean goBack() {
+        if (currentSet == IconSet.MAIN) return true;
+        showIconSet(IconSet.MAIN);
+        return false;
+    }
+
     enum IconSet {
         MAIN,
         NAV;

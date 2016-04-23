@@ -185,6 +185,11 @@ public class Performer implements IPerformer {
         return false;
     }
 
+    @Override
+    public boolean optionsGoBack() {
+        return optionsController.goBack();
+    }
+
     private int keepOnScreenY(int y) {
         return max(0, min(y, screenSize.y));
     }
