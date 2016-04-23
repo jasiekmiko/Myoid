@@ -94,8 +94,10 @@ public class Performer implements IPerformer {
 
     @Override
     public void goHome() {
-        mas.performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME);
-        Log.d(TAG, "Home global action performed.");
+        if (mas.performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME))
+            Log.d(TAG, "Home global action performed.");
+        else
+            Log.d(TAG, "Home global action attempted but failed. Connection missing.");
     }
 
     @Override

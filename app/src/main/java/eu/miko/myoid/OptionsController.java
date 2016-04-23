@@ -149,6 +149,7 @@ public class OptionsController {
     }
 
     void showIconSet(IconSet iconSet) {
+        resetPointerToCenter();
         hideCurrentSet();
         currentSet = iconSet;
         showCurrentSet();
