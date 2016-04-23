@@ -37,7 +37,7 @@ public interface IPerformer {
 
     void mouseTap();
 
-    boolean moveOptionsPointerBy(int x, int y);
+    Event moveOptionsPointerBy(int x, int y);
 
     boolean optionsGoBack();
 }

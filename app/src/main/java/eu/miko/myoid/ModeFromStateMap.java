@@ -15,13 +15,15 @@ public class ModeFromStateMap {
     Tapped tapped;
     OptionsDoorway optionsDoorway;
     Options options;
+    Media media;
 
     @Inject
-    public ModeFromStateMap(Mouse mouse, Tapped tapped, OptionsDoorway optionsDoorway, Options options) {
+    public ModeFromStateMap(Mouse mouse, Tapped tapped, OptionsDoorway optionsDoorway, Options options, Media media) {
         this.mouse = mouse;
         this.tapped = tapped;
         this.optionsDoorway = optionsDoorway;
         this.options = options;
+        this.media = media;
     }
 
     public Mode get(State state) {
@@ -33,6 +35,12 @@ public class ModeFromStateMap {
             case OPTIONS_DOORWAY_FROM_MOUSE:
                 return optionsDoorway;
             case OPTIONS_FROM_MOUSE:
+                return options;
+            case OPTIONS_DOORWAY_FROM_MEDIA:
+                return optionsDoorway;
+            case MEDIA:
+                return media;
+            case OPTIONS_FROM_MEDIA:
                 return options;
             default:
                 return new Mode(null) {

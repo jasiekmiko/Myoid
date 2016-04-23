@@ -10,4 +10,5 @@ public enum Event {
     RELAX,
     Z_AXIS,
     OPTION_SELECTED,
+    SWITCH_MODE,
 }

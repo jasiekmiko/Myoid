@@ -175,14 +175,14 @@ public class Performer implements IPerformer {
     }
 
     @Override
-    public boolean moveOptionsPointerBy(int x, int y) {
+    public Event moveOptionsPointerBy(int x, int y) {
         Icon targetIcon = optionsController.movePointerBy(x, y);
         if (targetIcon != null) {
             optionsController.resetPointerToCenter();
-            boolean optionSelected = performOption(targetIcon);
+            Event optionSelected = performOption(targetIcon);
             return optionSelected;
         }
-        return false;
+        return null;
     }
 
     @Override
@@ -238,32 +238,32 @@ public class Performer implements IPerformer {
         return null;
     }
 
-    private boolean performOption(Icon target) {
+    private Event performOption(Icon target) {
         if (target instanceof OptionsController.MainIcon)
             switch ((OptionsController.MainIcon) target) {
                 case SEARCH:
                     openVoiceSearch();
-                    return true;
+                    return Event.OPTION_SELECTED;
                 case MEDIA_MOUSE:
-                    break;
+                    return Event.SWITCH_MODE;
                 case NAV:
                     optionsController.showIconSet(OptionsController.IconSet.NAV);
+                    break;
                 case QS:
                     break;
             }
-        else if (target instanceof OptionsController.NavIcon){
+        else if (target instanceof OptionsController.NavIcon)
             switch ((OptionsController.NavIcon) target) {
                 case BACK:
                     goBack();
-                    return true;
+                    return Event.OPTION_SELECTED;
                 case HOME:
                     goHome();
-                    return true;
+                    return Event.OPTION_SELECTED;
                 case RECENT:
                     break;
             }
-        }
-        return false;
+        return null;
     }
 
     private void openVoiceSearch() {

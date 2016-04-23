@@ -15,6 +15,7 @@ public enum State {
     IN_CALL,
     CALL_VOLUME,
     CAMERA,
+    OPTIONS_FROM_MEDIA,
     CAMERA_ZOOM
 
 }
