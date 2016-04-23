@@ -7,7 +7,6 @@ public enum State {
     OPTIONS_FROM_MOUSE,
     OPTIONS_DOORWAY_FROM_MEDIA,
     SYSTEM_VOLUME,
-    QUICK_SETTINGS,
     MEDIA,
     MEIDA_VOLUME,
     PREVIOUS,
@@ -16,6 +15,6 @@ public enum State {
     IN_CALL,
     CALL_VOLUME,
     CAMERA,
-    CAMERA_ZOOM;
+    CAMERA_ZOOM
 
 }

@@ -67,13 +67,7 @@ public class InputResolver {
                 .addTransition(State.MOUSE, Event.FIST, State.TAPPED)
                 .addTransition(State.MOUSE, Event.SPREAD, State.OPTIONS_DOORWAY_FROM_MOUSE)
                 //OPTIONS_DOORWAY_FROM_MOUSE
-                .onEnter(State.OPTIONS_DOORWAY_FROM_MOUSE, new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.d(TAG, String.format("%s state entered.", "optionsEntry"));
-                        performer.shortToast("Options time!");
-                    }
-                })
+                .onEnter(State.OPTIONS_DOORWAY_FROM_MOUSE, runnableEntryNotifier(State.OPTIONS_DOORWAY_FROM_MOUSE.name()))
                 .addTransition(State.OPTIONS_DOORWAY_FROM_MOUSE, Event.RELAX, State.MOUSE)
                 .addTransition(State.OPTIONS_DOORWAY_FROM_MOUSE, Event.Z_AXIS, State.OPTIONS_FROM_MOUSE)
                 //TAPPED
@@ -81,7 +75,7 @@ public class InputResolver {
                 //OPTIONS_FROM_MOUSE
                 .onEnter(State.OPTIONS_FROM_MOUSE, new runnableOpenOptions())
                 .addTransition(State.OPTIONS_FROM_MOUSE, Event.LEFT, State.MOUSE)
-                .addTransition(State.OPTIONS_FROM_MOUSE,Event.OPTION_SELECTED, State.MOUSE)
+                .addTransition(State.OPTIONS_FROM_MOUSE, Event.OPTION_SELECTED, State.MOUSE)
                 .onExit(State.OPTIONS_FROM_MOUSE, new runnableCloseOptions())
                 .build();
     }
