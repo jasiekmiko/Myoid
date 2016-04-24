@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -37,11 +38,13 @@ public class StatusActivity extends Activity {
     protected void onStart() {
         super.onStart();
         Intent intent = getIntent();
-        boolean updateUi = intent.getBooleanExtra("UPDATE_UI", false);
-        if (updateUi) {
-            ensureActivityInjected();
-            updateDrawingOverlaysButtonText();
-        }
+        boolean shouldUpdateUi = intent.getBooleanExtra("UPDATE_UI", false);
+        if (shouldUpdateUi) updateUi();
+    }
+
+    private void updateUi() {
+        ensureActivityInjected();
+        updateDrawingOverlaysButtonText();
     }
 
     private void initializeUiComponents() {
@@ -74,7 +77,10 @@ public class StatusActivity extends Activity {
             @Override
             public void onClick(View view) {
                 ensureActivityInjected();
-                myoChooserLauncher.chooseMyo(activity);
+                if (!isAccessibilityOn())
+                    startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
+                else
+                    myoChooserLauncher.chooseMyo(activity);
             }
         });
     }
@@ -95,6 +101,44 @@ public class StatusActivity extends Activity {
             drawingOverlaysPermissionButton.setText("Drawing overlays permission granted!");
         else
             drawingOverlaysPermissionButton.setText("Drawing overlays permission lacking! Click here");
+    }
+
+    private boolean isAccessibilityOn() {
+        int accessibilityEnabled = 0;
+        final String service = getPackageName() + "/" + MyoidAccessibilityService.class.getCanonicalName();
+        try {
+            accessibilityEnabled = Settings.Secure.getInt(
+                    getApplicationContext().getContentResolver(),
+                    android.provider.Settings.Secure.ACCESSIBILITY_ENABLED);
+            Log.v(TAG, "accessibilityEnabled = " + accessibilityEnabled);
+        } catch (Settings.SettingNotFoundException e) {
+            Log.e(TAG, "Error finding setting, default accessibility to not found: "
+                    + e.getMessage());
+        }
+        TextUtils.SimpleStringSplitter mStringColonSplitter = new TextUtils.SimpleStringSplitter(':');
+
+        if (accessibilityEnabled == 1) {
+            Log.v(TAG, "***ACCESSIBILITY IS ENABLED*** -----------------");
+            String settingValue = Settings.Secure.getString(
+                    getApplicationContext().getContentResolver(),
+                    Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+            if (settingValue != null) {
+                mStringColonSplitter.setString(settingValue);
+                while (mStringColonSplitter.hasNext()) {
+                    String accessibilityService = mStringColonSplitter.next();
+
+                    Log.v(TAG, "-------------- > accessibilityService :: " + accessibilityService + " " + service);
+                    if (accessibilityService.equalsIgnoreCase(service)) {
+                        Log.v(TAG, "We've found the correct setting - accessibility is switched on!");
+                        return true;
+                    }
+                }
+            }
+        } else {
+            Log.v(TAG, "***ACCESSIBILITY IS DISABLED***");
+        }
+        return false;
+
     }
 
     public void ensureActivityInjected() {
