@@ -27,15 +27,17 @@ import static java.lang.Math.min;
 public class Performer implements IPerformer {
     private static final String TAG = Performer.class.getName();
     private final OptionsController optionsController;
+    private final OverlayPermissionsRequester overlayPermissionsRequester;
 
     @Inject
-    public Performer(WindowManager windowManager, OptionsController optionsController) {
+    public Performer(WindowManager windowManager, OptionsController optionsController, OverlayPermissionsRequester overlayPermissionsRequester) {
         this.windowManager = windowManager;
         this.optionsController = optionsController;
+        this.overlayPermissionsRequester = overlayPermissionsRequester;
 
         Display display = windowManager.getDefaultDisplay();
         display.getSize(screenSize);
-        initCursor();
+        initCursorAndCursorParams();
     }
 
     private Myo myo;
@@ -44,7 +46,7 @@ public class Performer implements IPerformer {
 
     private ImageView cursor;
     private WindowManager.LayoutParams cursorParams;
-    private boolean cursorInitialized = false;
+    private boolean cursorViewAdded = false;
     private MyoidAccessibilityService mas = MyoidAccessibilityService.getMyoidService();
     private WindowManager windowManager;
 
@@ -101,7 +103,7 @@ public class Performer implements IPerformer {
     }
 
     @Override
-    public void initCursor() {
+    public void initCursorAndCursorParams() {
         cursor = new ImageView(mas);
         cursor.setImageResource(R.mipmap.ic_launcher);
 
@@ -119,16 +121,22 @@ public class Performer implements IPerformer {
 
     @Override
     public void displayCursor() {
-        if(!cursorInitialized) {
-            windowManager.addView(cursor, cursorParams);
-            cursorInitialized = true;
+        if(!cursorViewAdded) {
+            if (overlayPermissionsRequester.checkDrawingPermissions(mas)) {
+                windowManager.addView(cursor, cursorParams);
+                cursorViewAdded = true;
+            } else
+                mas.startStatusActivity(true);
         }
         cursor.setVisibility(View.VISIBLE);
     }
 
     @Override
     public void displayOptions() {
-        optionsController.displayOptions();
+        if (overlayPermissionsRequester.checkDrawingPermissions(mas))
+            optionsController.displayOptions();
+        else
+            mas.startStatusActivity(true);
     }
 
     @Override
@@ -138,7 +146,7 @@ public class Performer implements IPerformer {
 
     @Override
     public void moveCursor(int x, int y) {
-        if (cursorInitialized) {
+        if (cursorViewAdded) {
             cursorParams.x = keepOnScreenX(cursorParams.x + x);
             cursorParams.y = keepOnScreenY(cursorParams.y + y);
             windowManager.updateViewLayout(cursor, cursorParams);

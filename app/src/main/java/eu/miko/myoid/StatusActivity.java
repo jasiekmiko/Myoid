@@ -21,34 +21,43 @@ public class StatusActivity extends Activity {
     private final String TAG = "StatusActivity";
     private Boolean injected = false;
     @Inject IPerformer performer;
-    @Inject PointerInitializer pointerInitializer;
+    @Inject OverlayPermissionsRequester overlayPermissionsRequester;
     @Inject MyoChooserLauncher myoChooserLauncher;
+    private Button drawingOverlaysPermissionButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_status);
         startService(new Intent(this, MyoidAccessibilityService.class));
+        setContentView(R.layout.activity_status);
+        initializeUiComponents();
+    }
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Intent intent = getIntent();
+        boolean updateUi = intent.getBooleanExtra("UPDATE_UI", false);
+        if (updateUi) {
+            ensureActivityInjected();
+            updateDrawingOverlaysButtonText();
+        }
+    }
+
+    private void initializeUiComponents() {
         final Activity activity = this;
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ensureActivityInjected();
-                myoChooserLauncher.chooseMyo(activity);
-            }
-        });
+        initializeFAB(activity);
+        initializeDrawingPermissionsButton(activity);
+        initializeOptionsButton();
+        initializeAccessibilityStatus();
+    }
 
-        Button cursorButton = (Button) findViewById(R.id.initilizeCursor);
-        cursorButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ensureActivityInjected();
-                pointerInitializer.checkPermissionsAndInitializePointer(activity);
-            }
-        });
+    private void initializeAccessibilityStatus() {
+        TextView accessibilityStatus = (TextView) findViewById(R.id.accessibilityStatus);
+        accessibilityStatus.setText(isServiceConnected() ? R.string.accessibilityStatusConnected : R.string.accessibilityStatusNotConnected);
+    }
 
+    private void initializeOptionsButton() {
         Button optionsViewTestButton = (Button) findViewById(R.id.myoidScreenTestButton);
         optionsViewTestButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -57,9 +66,35 @@ public class StatusActivity extends Activity {
                 performer.displayOptions();
             }
         });
+    }
 
-        TextView accessibilityStatus = (TextView) findViewById(R.id.accessibilityStatus);
-        accessibilityStatus.setText(isServiceConnected() ? R.string.accessibilityStatusConnected : R.string.accessibilityStatusNotConnected);
+    private void initializeFAB(final Activity activity) {
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ensureActivityInjected();
+                myoChooserLauncher.chooseMyo(activity);
+            }
+        });
+    }
+
+    private void initializeDrawingPermissionsButton(final Activity activity) {
+        drawingOverlaysPermissionButton = (Button) findViewById(R.id.drawingOverlayPermission);
+        drawingOverlaysPermissionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ensureActivityInjected();
+                overlayPermissionsRequester.checkAndRequestDrawingPermissions(activity);
+            }
+        });
+    }
+
+    private void updateDrawingOverlaysButtonText() {
+        if (overlayPermissionsRequester.checkDrawingPermissions(this))
+            drawingOverlaysPermissionButton.setText("Drawing overlays permission granted!");
+        else
+            drawingOverlaysPermissionButton.setText("Drawing overlays permission lacking! Click here");
     }
 
     public void ensureActivityInjected() {
@@ -91,11 +126,10 @@ public class StatusActivity extends Activity {
                 break;
             }
             case REQUEST_DRAWING_RIGHTS: {
-                if (isPermissionGranted((grantResults))) {
-                    pointerInitializer.initializePointer();
-                } else {
-                    Log.i(TAG, "ALERT_WINDOW permission denied.");
-                }
+                if (isPermissionGranted((grantResults)))
+                    drawingOverlaysGranted();
+                else
+                    drawingOverlaysDenied();
                 break;
             }
         }
@@ -107,11 +141,22 @@ public class StatusActivity extends Activity {
         switch (requestCode) {
             case REQUEST_DRAWING_RIGHTS: {
                 if (Settings.canDrawOverlays(MyoidAccessibilityService.getMyoidService()))
-                    pointerInitializer.initializePointer();
-                else Log.i(TAG, "Drawing rights not granted.");
+                    drawingOverlaysGranted();
+                else
+                    drawingOverlaysDenied();
                 break;
             }
         }
+    }
+
+    private void drawingOverlaysDenied() {
+        Log.i(TAG, "Drawing rights not granted.");
+        updateDrawingOverlaysButtonText();
+    }
+
+    private void drawingOverlaysGranted() {
+        Log.d(TAG, "drawing permissions granted");
+        updateDrawingOverlaysButtonText();
     }
 
 
