@@ -1,0 +1,21 @@
+package eu.miko.myoid;
+
+public enum State {
+    MOUSE,
+    TAPPED,
+    OPTIONS_DOORWAY_FROM_MOUSE,
+    OPTIONS_FROM_MOUSE,
+    OPTIONS_DOORWAY_FROM_MEDIA,
+    SYSTEM_VOLUME,
+    MEDIA,
+    MEIDA_VOLUME,
+    PREVIOUS,
+    NEXT,
+    PHONE_CALLING,
+    IN_CALL,
+    CALL_VOLUME,
+    CAMERA,
+    OPTIONS_FROM_MEDIA,
+    CAMERA_ZOOM
+
+}
