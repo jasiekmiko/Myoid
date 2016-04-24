@@ -81,6 +81,7 @@ public class InputResolver {
                 //MEDIA
                 .onEnter(State.MEDIA, runnableEntryNotifier(State.MEDIA.name()))
                 .addTransition(State.MEDIA, Event.SPREAD, State.OPTIONS_DOORWAY_FROM_MEDIA)
+                .addTransition(State.MEDIA, Event.FIST, State.MEIDA_VOLUME)
                 //OPTIONS_DOORWAY_FROM_MEDIA
                 .onEnter(State.OPTIONS_DOORWAY_FROM_MEDIA, runnableEntryNotifier(State.OPTIONS_DOORWAY_FROM_MEDIA.name()))
                 .addTransition(State.OPTIONS_DOORWAY_FROM_MEDIA, Event.Z_AXIS, State.OPTIONS_FROM_MEDIA)
@@ -91,6 +92,9 @@ public class InputResolver {
                 .addTransition(State.OPTIONS_FROM_MEDIA, Event.OPTION_SELECTED, State.MEDIA)
                 .addTransition(State.OPTIONS_FROM_MEDIA, Event.SWITCH_MODE, State.MOUSE)
                 .onExit(State.OPTIONS_FROM_MEDIA, new runnableCloseOptions())
+                //MEDIA_VOLUME
+                .onEnter(State.MEIDA_VOLUME, runnableEntryNotifier(State.MEIDA_VOLUME.name()))
+                .addTransition(State.MEIDA_VOLUME, Event.RELAX, State.MEDIA)
                 .build();
     }
 
@@ -106,6 +110,7 @@ public class InputResolver {
     private class runnableShowMouse implements Runnable {
         @Override
         public void run() {
+            Log.d(TAG, "Mouse state entered.");
             performer.displayCursor();
         }
     }
@@ -113,6 +118,7 @@ public class InputResolver {
 
         @Override
         public void run() {
+            Log.d(TAG, "Options state entered.");
             performer.hideCursor();
             performer.displayOptions();
         }

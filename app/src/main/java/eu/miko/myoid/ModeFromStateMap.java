@@ -11,19 +11,21 @@ import javax.inject.Singleton;
 
 @Singleton
 public class ModeFromStateMap {
-    Mouse mouse;
-    Tapped tapped;
-    OptionsDoorway optionsDoorway;
-    Options options;
-    Media media;
+    final Mouse mouse;
+    final Tapped tapped;
+    final OptionsDoorway optionsDoorway;
+    final Options options;
+    final Media media;
+    final MediaVolume mediaVolume;
 
     @Inject
-    public ModeFromStateMap(Mouse mouse, Tapped tapped, OptionsDoorway optionsDoorway, Options options, Media media) {
+    public ModeFromStateMap(Mouse mouse, Tapped tapped, OptionsDoorway optionsDoorway, Options options, Media media, MediaVolume mediaVolume) {
         this.mouse = mouse;
         this.tapped = tapped;
         this.optionsDoorway = optionsDoorway;
         this.options = options;
         this.media = media;
+        this.mediaVolume = mediaVolume;
     }
 
     public Mode get(State state) {
@@ -42,6 +44,8 @@ public class ModeFromStateMap {
                 return media;
             case OPTIONS_FROM_MEDIA:
                 return options;
+            case MEIDA_VOLUME:
+                return mediaVolume;
             default:
                 return new Mode(null) {
                     final private String TAG = "UnimplementedMode";

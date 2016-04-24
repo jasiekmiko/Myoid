@@ -8,37 +8,21 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 @Singleton
-public class Media extends Mode {
+public class MediaVolume extends Mode {
     @Inject
-    public Media(Performer performer) {
+    public MediaVolume(Performer performer) {
         super(performer);
     }
 
     @Override
     public Event resolvePose(Pose pose) {
-        Event poseResult = null;
-        switch (pose) {
-            case REST:
-                break;
-            case FIST:
-                poseResult = Event.FIST;
-                break;
-            case WAVE_IN:
-                break;
-            case WAVE_OUT:
-                break;
-            case FINGERS_SPREAD:
-                poseResult = Event.SPREAD;
-            case DOUBLE_TAP:
-                break;
-            case UNKNOWN:
-                break;
-        }
-        return poseResult;
+        if (pose == Pose.REST) return Event.RELAX;
+        return null;
     }
 
     @Override
     public Event resolveOrientation(Quaternion rotation) {
+        //float roll = (float) Math.toDegrees(Quaternion.roll(rotation));
         return null;
     }
 
