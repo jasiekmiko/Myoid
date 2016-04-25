@@ -17,6 +17,12 @@ public class Options extends Mode {
     }
 
     @Override
+    public void onEntry() {
+        performer.hideCursor();
+        performer.displayOptions();
+    }
+
+    @Override
     public Event resolvePose(Pose pose) {
         Event event = null;
         switch (pose) {
@@ -60,5 +66,10 @@ public class Options extends Mode {
     @Override
     public void resolveUnlock() {
         performer.unlockMyoHold();
+    }
+
+    @Override
+    public void onExit() {
+        performer.dismissOptions();
     }
 }

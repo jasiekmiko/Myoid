@@ -31,5 +31,9 @@ public abstract class Mode {
     public Mode(Performer performer) {
         this.performer = performer;
     }
+
+    public void onEntry() {    }
+
+    public void onExit() {    }
 }
 

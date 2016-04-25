@@ -17,6 +17,11 @@ class Mouse extends Mode {
     }
 
     @Override
+    public void onEntry() {
+        performer.displayCursor();
+    }
+
+    @Override
     public Event resolvePose(Pose pose) {
         Event event = null;
         switch(pose) {
