@@ -2,9 +2,7 @@ package eu.miko.myoid;
 
 import android.accessibilityservice.AccessibilityService;
 import android.content.Intent;
-import android.graphics.Point;
 import android.util.Log;
-import android.view.Display;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.widget.Toast;
@@ -54,7 +52,7 @@ public class MyoidAccessibilityService extends AccessibilityService {
         Hub hub = myoHubManager.getHub();
         hub.attachToAdjacentMyo();
         if (hub.getConnectedDevices().isEmpty()) {
-            startStatusActivity();
+            startStatusActivity(false);
         }
         serviceConnected = true;
     }
@@ -78,9 +76,10 @@ public class MyoidAccessibilityService extends AccessibilityService {
 
     public ObjectGraph getObjectGraph() { return objectGraph; }
 
-    private void startStatusActivity() {
+    void startStatusActivity(boolean updateUi) {
         Intent intent = new Intent(this, StatusActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra("UPDATE_UI", updateUi);
         startActivity(intent);
     }
 }
