@@ -18,6 +18,7 @@ class Mouse extends Mode {
 
     @Override
     public void onEntry() {
+        performer.changeCursorImage(Pose.REST);
         performer.displayCursor();
     }
 
