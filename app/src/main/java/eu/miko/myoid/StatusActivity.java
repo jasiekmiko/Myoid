@@ -25,6 +25,7 @@ public class StatusActivity extends Activity {
     @Inject OverlayPermissionsRequester overlayPermissionsRequester;
     @Inject MyoChooserLauncher myoChooserLauncher;
     private Button drawingOverlaysPermissionButton;
+    private TextView accessibilityStatusText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,12 +53,22 @@ public class StatusActivity extends Activity {
         initializeFAB(activity);
         initializeDrawingPermissionsButton(activity);
         initializeOptionsButton();
-        initializeAccessibilityStatus();
+        initializeAccessibilityStatusText();
     }
 
-    private void initializeAccessibilityStatus() {
-        TextView accessibilityStatus = (TextView) findViewById(R.id.accessibilityStatus);
-        accessibilityStatus.setText(isServiceConnected() ? R.string.accessibilityStatusConnected : R.string.accessibilityStatusNotConnected);
+    private void initializeAccessibilityStatusText() {
+        accessibilityStatusText = (TextView) findViewById(R.id.accessibilityStatus);
+        updateAccessibilityStatusText();
+        accessibilityStatusText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                updateAccessibilityStatusText();
+            }
+        });
+    }
+
+    private void updateAccessibilityStatusText() {
+        accessibilityStatusText.setText(isServiceConnected() ? R.string.accessibilityStatusConnected : R.string.accessibilityStatusNotConnected);
     }
 
     private void initializeOptionsButton() {
