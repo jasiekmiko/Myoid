@@ -1,6 +1,7 @@
 package eu.miko.myoid;
 
 import com.thalmic.myo.Myo;
+import com.thalmic.myo.Pose;
 
 public interface IPerformer {
     void shortToast(String text);
@@ -40,4 +41,6 @@ public interface IPerformer {
     Event moveOptionsPointerBy(int x, int y);
 
     boolean optionsGoBack();
+
+    void changeCursorImage(Pose pose);
 }

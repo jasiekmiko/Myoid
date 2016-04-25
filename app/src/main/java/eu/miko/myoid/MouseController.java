@@ -3,12 +3,15 @@ package eu.miko.myoid;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.test.RenamingDelegatingContext;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.ImageView;
+
+import com.thalmic.myo.Pose;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -34,7 +37,7 @@ public class MouseController {
 
     public void initCursorAndCursorParams() {
         cursor = new ImageView(mas);
-        cursor.setImageResource(R.mipmap.ic_launcher);
+        cursor.setImageResource(R.drawable.cursor_pan);
 
         cursorParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
@@ -139,5 +142,30 @@ public class MouseController {
             if (maybeClickable != null) return maybeClickable;
         }
         return null;
+    }
+
+    public void changeCursorImage(Pose pose) {
+        int resource = R.drawable.cursor_pan;
+        switch (pose) {
+            case REST:
+                resource = R.drawable.cursor_pan;
+                break;
+            case FIST:
+                resource = R.drawable.cursor_fist;
+                break;
+            case WAVE_IN:
+                resource = R.drawable.cursor_left;
+                break;
+            case WAVE_OUT:
+                resource = R.drawable.cursor_right;
+                break;
+            case FINGERS_SPREAD:
+                resource = R.drawable.cursor_spread;
+                break;
+            case DOUBLE_TAP:
+                resource = R.drawable.cursor_double_tap;
+                break;
+        }
+        cursor.setImageResource(resource);
     }
 }

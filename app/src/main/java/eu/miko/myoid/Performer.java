@@ -8,6 +8,7 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.thalmic.myo.Myo;
+import com.thalmic.myo.Pose;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -107,6 +108,11 @@ public class Performer implements IPerformer {
     @Override
     public void dismissOptions() {
         optionsController.dismissOptions();
+    }
+
+    @Override
+    public void changeCursorImage(Pose pose) {
+        mouseController.changeCursorImage(pose);
     }
 
     @Override

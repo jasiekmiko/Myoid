@@ -24,6 +24,7 @@ class Mouse extends Mode {
     @Override
     public Event resolvePose(Pose pose) {
         Event event = null;
+        performer.changeCursorImage(pose);
         switch(pose) {
             case REST:
                 break;
