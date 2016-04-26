@@ -10,6 +10,8 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
+import com.thalmic.myo.Pose;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Set;
@@ -110,7 +112,7 @@ public class OptionsController {
 
     private void initPointer() {
         pointer = new ImageView(mas);
-        pointer.setImageResource(R.mipmap.ic_launcher);
+        pointer.setImageResource(R.drawable.cursor_pan);
         pointerParams = new WindowManager.LayoutParams(
             pointerSize,
             pointerSize,
@@ -267,6 +269,10 @@ public class OptionsController {
         if (currentSet == IconSet.MAIN) return true;
         showIconSet(IconSet.MAIN);
         return false;
+    }
+
+    public void changePointerImage(int resource) {
+        pointer.setImageResource(resource);
     }
 
     enum IconSet {

@@ -43,4 +43,6 @@ public interface IPerformer {
     boolean optionsGoBack();
 
     void changeCursorImage(Pose pose);
+
+    void changePointerImage(Pose pose);
 }

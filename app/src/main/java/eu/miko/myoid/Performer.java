@@ -111,8 +111,38 @@ public class Performer implements IPerformer {
     }
 
     @Override
+    public void changePointerImage(Pose pose) {
+        optionsController.changePointerImage(getPoseImage(pose));
+    }
+
+    @Override
     public void changeCursorImage(Pose pose) {
-        mouseController.changeCursorImage(pose);
+        mouseController.setCursorResource(getPoseImage(pose));
+    }
+
+    public int getPoseImage(Pose pose) {
+        int resource = R.drawable.cursor_pan;
+        switch (pose) {
+            case REST:
+                resource = R.drawable.cursor_pan;
+                break;
+            case FIST:
+                resource = R.drawable.cursor_fist;
+                break;
+            case WAVE_IN:
+                resource = R.drawable.cursor_left;
+                break;
+            case WAVE_OUT:
+                resource = R.drawable.cursor_right;
+                break;
+            case FINGERS_SPREAD:
+                resource = R.drawable.cursor_spread;
+                break;
+            case DOUBLE_TAP:
+                resource = R.drawable.cursor_double_tap;
+                break;
+        }
+        return resource;
     }
 
     @Override
