@@ -111,8 +111,8 @@ public class OptionsController {
         pointer = new ImageView(mas);
         pointer.setImageResource(R.mipmap.ic_launcher);
         pointerParams = new WindowManager.LayoutParams(
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            WindowManager.LayoutParams.WRAP_CONTENT,
+            69,
+            69,
             WindowManager.LayoutParams.TYPE_PHONE,
             WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
                 | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
