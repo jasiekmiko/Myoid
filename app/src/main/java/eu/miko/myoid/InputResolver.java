@@ -17,19 +17,17 @@ public class InputResolver {
     private ModeFromStateMap modeFromState;
 
     @Inject
-    public InputResolver(ModeFromStateMap modeFromState, IPerformer performer) {
+    public InputResolver(ModeFromStateMap modeFromState) {
         this.modeFromState = modeFromState;
-        this.performer = performer;
     }
 
     private StateMachine<State, Event> myoidStateMachine = createMyoidStateMachine();
     private Arm arm;
-    private IPerformer performer;
 
     public void resolvePose(Pose pose) {
+        Log.d(TAG, "Pose detected: " + pose);
         Event resultingEvent = getCurrentMode().resolvePose(pose);
         myoidStateMachine.apply(resultingEvent);
-        Log.d(TAG, "Pose detected: " + pose);
     }
 
     public void resolveOrientation(Quaternion rotation) {
@@ -63,40 +61,66 @@ public class InputResolver {
     private StateMachine<State, Event> createMyoidStateMachine() {
         return new StateMachineBuilder<State, Event>(State.MOUSE)
                 //MOUSE
-                .onEnter(State.MOUSE, runnableEntryNotifier("Mouse"))
+                .onEnter(State.MOUSE, new RunnableOnEntry(State.MOUSE))
                 .addTransition(State.MOUSE, Event.FIST, State.TAPPED)
                 .addTransition(State.MOUSE, Event.SPREAD, State.OPTIONS_DOORWAY_FROM_MOUSE)
                 //OPTIONS_DOORWAY_FROM_MOUSE
-                .onEnter(State.OPTIONS_DOORWAY_FROM_MOUSE, new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.d(TAG, String.format("%s state entered.", "optionsEntry"));
-                        performer.shortToast("Options time!");
-                    }
-                })
+                .onEnter(State.OPTIONS_DOORWAY_FROM_MOUSE, new RunnableOnEntry(State.OPTIONS_DOORWAY_FROM_MOUSE))
                 .addTransition(State.OPTIONS_DOORWAY_FROM_MOUSE, Event.RELAX, State.MOUSE)
                 .addTransition(State.OPTIONS_DOORWAY_FROM_MOUSE, Event.Z_AXIS, State.OPTIONS_FROM_MOUSE)
                 //TAPPED
+                .onEnter(State.TAPPED, new RunnableOnEntry(State.TAPPED))
                 .addTransition(State.TAPPED, Event.RELAX, State.MOUSE)
                 //OPTIONS_FROM_MOUSE
-                .onEnter(State.OPTIONS_FROM_MOUSE, new runnableOpenOptions())
+                .onEnter(State.OPTIONS_FROM_MOUSE, new RunnableOnEntry(State.OPTIONS_FROM_MOUSE))
                 .addTransition(State.OPTIONS_FROM_MOUSE, Event.LEFT, State.MOUSE)
+                .addTransition(State.OPTIONS_FROM_MOUSE, Event.OPTION_SELECTED, State.MOUSE)
+                .addTransition(State.OPTIONS_FROM_MOUSE, Event.SWITCH_MODE, State.MEDIA)
+                .onExit(State.OPTIONS_FROM_MOUSE, new RunnableOnExit(State.OPTIONS_FROM_MOUSE))
+                //MEDIA
+                .onEnter(State.MEDIA, new RunnableOnEntry(State.MEDIA))
+                .addTransition(State.MEDIA, Event.SPREAD, State.OPTIONS_DOORWAY_FROM_MEDIA)
+                .addTransition(State.MEDIA, Event.FIST, State.MEIDA_VOLUME)
+                //OPTIONS_DOORWAY_FROM_MEDIA
+                .onEnter(State.OPTIONS_DOORWAY_FROM_MEDIA, new RunnableOnEntry(State.OPTIONS_DOORWAY_FROM_MEDIA))
+                .addTransition(State.OPTIONS_DOORWAY_FROM_MEDIA, Event.Z_AXIS, State.OPTIONS_FROM_MEDIA)
+                .addTransition(State.OPTIONS_DOORWAY_FROM_MEDIA, Event.RELAX, State.MEDIA)
+                //OPTIONS_FROM_MEDIA
+                .onEnter(State.OPTIONS_FROM_MEDIA, new RunnableOnEntry(State.OPTIONS_FROM_MEDIA))
+                .addTransition(State.OPTIONS_FROM_MEDIA, Event.LEFT, State.MEDIA)
+                .addTransition(State.OPTIONS_FROM_MEDIA, Event.OPTION_SELECTED, State.MEDIA)
+                .addTransition(State.OPTIONS_FROM_MEDIA, Event.SWITCH_MODE, State.MOUSE)
+                .onExit(State.OPTIONS_FROM_MEDIA, new RunnableOnExit(State.OPTIONS_FROM_MEDIA))
+                //MEDIA_VOLUME
+                .onEnter(State.MEIDA_VOLUME, new RunnableOnEntry(State.MEIDA_VOLUME))
+                .addTransition(State.MEIDA_VOLUME, Event.RELAX, State.MEDIA)
                 .build();
     }
 
-    private Runnable runnableEntryNotifier(final String newState) {
-        return new Runnable() {
-            @Override
-            public void run() {
-                Log.d(TAG, String.format("%s state entered.", newState));
-            }
-        };
-    }
+    private class RunnableOnExit implements Runnable {
+        final State state;
 
-    private class runnableOpenOptions implements Runnable {
+        private RunnableOnExit(State state) {
+            this.state = state;
+        }
+
         @Override
         public void run() {
-            performer.displayOptions();
+            modeFromState.get(state).onExit();
+        }
+    }
+
+    private class RunnableOnEntry implements Runnable {
+        final State state;
+
+        private RunnableOnEntry(State state) {
+            this.state = state;
+        }
+
+        @Override
+        public void run() {
+            Log.d(TAG, String.format("%s state entered.", state.name()));
+            modeFromState.get(state).onEntry();
         }
     }
 }

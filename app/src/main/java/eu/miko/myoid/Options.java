@@ -1,5 +1,7 @@
 package eu.miko.myoid;
 
+import android.support.annotation.NonNull;
+
 import com.thalmic.myo.Pose;
 import com.thalmic.myo.Quaternion;
 import com.thalmic.myo.Vector3;
@@ -15,14 +17,21 @@ public class Options extends Mode {
     }
 
     @Override
+    public void onEntry() {
+        performer.hideCursor();
+        performer.displayOptions();
+    }
+
+    @Override
     public Event resolvePose(Pose pose) {
         Event event = null;
+        performer.changePointerImage(pose);
         switch (pose) {
             case FIST:
                 event = Event.FIST;
                 break;
             case WAVE_IN:
-                event = Event.LEFT;
+                if(goBackAndCheckIfOptionsClose()) event = Event.LEFT;
                 break;
             case DOUBLE_TAP:
                 performer.lockMyo();
@@ -30,9 +39,19 @@ public class Options extends Mode {
         return event;
     }
 
+    @NonNull
+    private boolean goBackAndCheckIfOptionsClose() {
+        return performer.optionsGoBack();
+    }
+
     @Override
     public Event resolveOrientation(Quaternion rotation) {
-        return null;
+        //float roll = (float) Math.toDegrees(Quaternion.roll(rotation));
+        float pitch = (float) Math.toDegrees(Quaternion.pitch(rotation));
+        float yaw = (float) Math.toDegrees(Quaternion.yaw(rotation));
+
+        Event optionSelected = performer.moveOptionsPointerBy(xMovement(yaw), yMovement(pitch));
+        return optionSelected;
     }
 
     @Override
@@ -48,5 +67,10 @@ public class Options extends Mode {
     @Override
     public void resolveUnlock() {
         performer.unlockMyoHold();
+    }
+
+    @Override
+    public void onExit() {
+        performer.dismissOptions();
     }
 }

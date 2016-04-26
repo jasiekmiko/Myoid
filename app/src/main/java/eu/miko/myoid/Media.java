@@ -8,36 +8,33 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 @Singleton
-public class OptionsDoorway extends Mode {
+public class Media extends Mode {
     @Inject
-    public OptionsDoorway(Performer performer) {
+    public Media(Performer performer) {
         super(performer);
     }
 
     @Override
-    public void onEntry() {
-        performer.changeCursorImage(Pose.FINGERS_SPREAD);
-    }
-
-    @Override
     public Event resolvePose(Pose pose) {
+        Event poseResult = null;
         switch (pose) {
             case REST:
-                return Event.RELAX;
+                break;
             case FIST:
+                poseResult = Event.FIST;
                 break;
             case WAVE_IN:
                 break;
             case WAVE_OUT:
                 break;
             case FINGERS_SPREAD:
-                break;
+                poseResult = Event.SPREAD;
             case DOUBLE_TAP:
                 break;
             case UNKNOWN:
                 break;
         }
-        return null;
+        return poseResult;
     }
 
     @Override
@@ -47,7 +44,6 @@ public class OptionsDoorway extends Mode {
 
     @Override
     public Event resolveAcceleration(Vector3 acceleration) {
-        if (acceleration.z() > .1) return Event.Z_AXIS;
         return null;
     }
 
@@ -57,6 +53,7 @@ public class OptionsDoorway extends Mode {
     }
 
     @Override
-    public void resolveUnlock() {}
+    public void resolveUnlock() {
 
+    }
 }

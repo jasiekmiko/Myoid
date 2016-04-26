@@ -8,10 +8,15 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 @Singleton
-class Tapped extends Mode {
+class Tapped extends Mouse {
     @Inject
     public Tapped(Performer performer) {
         super(performer);
+    }
+
+    @Override
+    public void onEntry() {
+        performer.changeCursorImage(Pose.FIST);
     }
 
     @Override
@@ -23,22 +28,4 @@ class Tapped extends Mode {
         return null;
     }
 
-    @Override
-    public Event resolveOrientation(Quaternion rotation) {
-        return null;
-    }
-
-    @Override
-    public Event resolveAcceleration(Vector3 acceleration) {
-        return null;
-    }
-
-    @Override
-    public Event resolveGyro(Vector3 gyro) {
-        return null;
-    }
-
-    @Override
-    public void resolveUnlock() {
-    }
 }
