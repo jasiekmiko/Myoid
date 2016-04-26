@@ -15,6 +15,11 @@ class Tapped extends Mouse {
     }
 
     @Override
+    public void onEntry() {
+        performer.changeCursorImage(Pose.FIST);
+    }
+
+    @Override
     public Event resolvePose(Pose pose) {
         if (pose == Pose.REST) {
             performer.mouseTap();

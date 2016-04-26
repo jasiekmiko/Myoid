@@ -15,6 +15,11 @@ public class OptionsDoorway extends Mode {
     }
 
     @Override
+    public void onEntry() {
+        performer.changeCursorImage(Pose.FINGERS_SPREAD);
+    }
+
+    @Override
     public Event resolvePose(Pose pose) {
         switch (pose) {
             case REST:
