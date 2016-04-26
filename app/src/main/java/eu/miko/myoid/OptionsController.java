@@ -38,6 +38,7 @@ public class OptionsController {
     Boolean graphicsInitialized = false;
     private final MyoidAccessibilityService mas;
     private int iconRadius;
+    private int pointerSize = 69;
 
     @Inject
     public OptionsController(WindowManager windowManager, MyoidAccessibilityService mas) {
@@ -111,8 +112,8 @@ public class OptionsController {
         pointer = new ImageView(mas);
         pointer.setImageResource(R.mipmap.ic_launcher);
         pointerParams = new WindowManager.LayoutParams(
-            69,
-            69,
+            pointerSize,
+            pointerSize,
             WindowManager.LayoutParams.TYPE_PHONE,
             WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
                 | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
@@ -143,9 +144,19 @@ public class OptionsController {
     }
 
     private boolean exitsBoundary(int newX, int newY) {
-        Point newPos = new Point(newX, newY);
+        Point newPos = getPointerCenter(newX, newY);
         double dist = distance(newPos, circleCenter);
-        return dist > circleRadius*1.5;
+        return dist > circleRadius*1.1;
+    }
+
+    private Point getPointerCenter() {
+        return getPointerCenter(pointerParams.x, pointerParams.y);
+    }
+
+    @NonNull
+    private Point getPointerCenter(int newX, int newY) {
+        int pointerRadius = pointerSize/2;
+        return new Point(newX + pointerRadius, newY + pointerRadius);
     }
 
     void showIconSet(IconSet iconSet) {
@@ -168,7 +179,7 @@ public class OptionsController {
     }
 
     private Icon checkIfWithinThresholdOfAnIcon() {
-        Point myPos = new Point(pointerParams.x, pointerParams.y);
+        Point myPos = getPointerCenter();
         for (Icon icon : currentSet.getIcons()) {
             View view = currentSet.getView(icon);
             Point iconPos = pointFromView(view);
@@ -181,7 +192,8 @@ public class OptionsController {
     @NonNull
     private Point pointFromView(View view) {
         WindowManager.LayoutParams lp = (WindowManager.LayoutParams) view.getLayoutParams();
-        return new Point(lp.x, lp.y);
+        int viewRadius = min(lp.width, lp.height)/2;
+        return new Point(lp.x + viewRadius, lp.y + viewRadius);
     }
 
     private double distance(Point p1, Point p2) {
