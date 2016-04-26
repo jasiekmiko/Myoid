@@ -34,6 +34,7 @@ public class Options extends Mode {
                 if(goBackAndCheckIfOptionsClose()) event = Event.LEFT;
                 break;
             case DOUBLE_TAP:
+                performer.hideOptions();
                 performer.lockMyo();
         }
         return event;
@@ -67,10 +68,11 @@ public class Options extends Mode {
     @Override
     public void resolveUnlock() {
         performer.unlockMyoHold();
+        performer.displayOptions();
     }
 
     @Override
     public void onExit() {
-        performer.dismissOptions();
+        performer.hideOptions();
     }
 }

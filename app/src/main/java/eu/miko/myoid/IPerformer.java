@@ -28,7 +28,7 @@ public interface IPerformer {
 
     void displayOptions();
 
-    void dismissOptions();
+    void hideOptions();
 
     void moveCursor(int x, int y);
 

@@ -106,7 +106,7 @@ public class Performer implements IPerformer {
     }
 
     @Override
-    public void dismissOptions() {
+    public void hideOptions() {
         optionsController.dismissOptions();
     }
 
