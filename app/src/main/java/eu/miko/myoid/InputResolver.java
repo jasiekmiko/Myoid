@@ -17,14 +17,12 @@ public class InputResolver {
     private ModeFromStateMap modeFromState;
 
     @Inject
-    public InputResolver(ModeFromStateMap modeFromState, IPerformer performer) {
+    public InputResolver(ModeFromStateMap modeFromState) {
         this.modeFromState = modeFromState;
-        this.performer = performer;
     }
 
     private StateMachine<State, Event> myoidStateMachine = createMyoidStateMachine();
     private Arm arm;
-    private IPerformer performer;
 
     public void resolvePose(Pose pose) {
         Log.d(TAG, "Pose detected: " + pose);
