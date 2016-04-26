@@ -15,6 +15,11 @@ public class Media extends Mode {
     }
 
     @Override
+    public void onEntry() {
+        performer.unlockMyoTimed();
+    }
+
+    @Override
     public Event resolvePose(Pose pose) {
         Event poseResult = null;
         switch (pose) {
@@ -24,12 +29,15 @@ public class Media extends Mode {
                 poseResult = Event.FIST;
                 break;
             case WAVE_IN:
+                performer.MediaNext();
                 break;
             case WAVE_OUT:
+                performer.MediaPrev();
                 break;
             case FINGERS_SPREAD:
                 poseResult = Event.SPREAD;
             case DOUBLE_TAP:
+                performer.lockMyo();
                 break;
             case UNKNOWN:
                 break;
@@ -53,7 +61,12 @@ public class Media extends Mode {
     }
 
     @Override
-    public void resolveUnlock() {
+    public void onExit() {
+        performer.unlockMyoHold();
+    }
 
+    @Override
+    public void resolveUnlock() {
+        performer.unlockMyoTimed();
     }
 }

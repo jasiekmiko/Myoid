@@ -1,14 +1,20 @@
 package eu.miko.myoid;
 
 import android.accessibilityservice.AccessibilityService;
+import android.content.Context;
 import android.content.Intent;
+import android.media.session.MediaController;
+import android.media.session.MediaSessionManager;
+import android.os.Build;
 import android.speech.RecognizerIntent;
 import android.util.Log;
-import android.view.WindowManager;
+import android.view.KeyEvent;
 import android.widget.Toast;
 
 import com.thalmic.myo.Myo;
 import com.thalmic.myo.Pose;
+
+import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -19,12 +25,30 @@ public class Performer implements IPerformer {
     private final OptionsController optionsController;
     private final OverlayPermissionsRequester overlayPermissionsRequester;
     private final MouseController mouseController;
+    private MediaSessionManager mediaSessionManager;
+    private List<MediaController> mediaControllers;
 
     @Inject
-    public Performer(WindowManager windowManager, OptionsController optionsController, OverlayPermissionsRequester overlayPermissionsRequester, MouseController mouseController, MouseController mouseController1) {
+    public Performer(OptionsController optionsController, OverlayPermissionsRequester overlayPermissionsRequester, MouseController mouseController) {
         this.optionsController = optionsController;
         this.overlayPermissionsRequester = overlayPermissionsRequester;
-        this.mouseController = mouseController1;
+        this.mouseController = mouseController;
+    }
+
+    public void initializeMediaControllers() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            mediaSessionManager = (MediaSessionManager) mas.getSystemService(Context.MEDIA_SESSION_SERVICE);
+            mediaSessionManager.addOnActiveSessionsChangedListener(new MyoidOnActiveSessionsChangedListener(), null);
+            mediaControllers = mediaSessionManager.getActiveSessions(null);
+        }
+        else displayMediaControlsNotImplementedWarning();
+    }
+
+    @Override
+    public void displayMediaControlsNotImplementedWarning() {
+        String warningMessage = "Media controls not implemented for this version of Android.";
+        Log.w(TAG, warningMessage);
+        shortToast(warningMessage);
     }
 
     private Myo myo;
@@ -108,6 +132,35 @@ public class Performer implements IPerformer {
     @Override
     public void hideOptions() {
         optionsController.dismissOptions();
+    }
+
+    @Override
+    public void MediaNext() {
+        for (MediaController mc : mediaControllers) {
+            KeyEvent keyEvent = new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_NEXT);
+            sendKeyEventToMediaController(mc, keyEvent);
+        }
+    }
+
+    @Override
+    public void MediaPrev() {
+        for (MediaController mc : mediaControllers) {
+            KeyEvent keyEvent = new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PREVIOUS);
+            sendKeyEventToMediaController(mc, keyEvent);
+        }
+    }
+
+    private void sendKeyEventToMediaController(MediaController mc, KeyEvent keyEvent) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            if (mc.dispatchMediaButtonEvent(keyEvent)){
+                Log.d(TAG, String.format("%s sent to %s", keyEvent.getDisplayLabel(), mc.getPackageName()));
+            }
+            else {
+                Log.d(TAG, String.format("%s not sent to %s", keyEvent.getDisplayLabel(), mc.getPackageName()));
+            }
+        }
+        else
+            displayMediaControlsNotImplementedWarning();
     }
 
     @Override
@@ -226,5 +279,12 @@ public class Performer implements IPerformer {
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         mas.startActivity(intent);
+    }
+
+    private class MyoidOnActiveSessionsChangedListener implements MediaSessionManager.OnActiveSessionsChangedListener {
+        @Override
+        public void onActiveSessionsChanged(List<MediaController> controllers) {
+            mediaControllers = controllers;
+        }
     }
 }

@@ -4,6 +4,8 @@ import com.thalmic.myo.Myo;
 import com.thalmic.myo.Pose;
 
 public interface IPerformer {
+    void displayMediaControlsNotImplementedWarning();
+
     void shortToast(String text);
 
     void setMyo(Myo myo);
@@ -45,4 +47,8 @@ public interface IPerformer {
     void changeCursorImage(Pose pose);
 
     void changePointerImage(Pose pose);
+
+    void MediaNext();
+
+    void MediaPrev();
 }

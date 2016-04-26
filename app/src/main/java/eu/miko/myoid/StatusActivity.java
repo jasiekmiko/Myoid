@@ -1,13 +1,17 @@
 package eu.miko.myoid;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -19,6 +23,7 @@ import javax.inject.Inject;
 public class StatusActivity extends Activity {
     final static int REQUEST_FINE_LOCATION = 101;
     public static final int REQUEST_DRAWING_RIGHTS = 102;
+    private static final int REQUEST_MEDIA_CONTROLS = 103;
     private final String TAG = "StatusActivity";
     private Boolean injected = false;
     @Inject IPerformer performer;
@@ -26,6 +31,8 @@ public class StatusActivity extends Activity {
     @Inject MyoChooserLauncher myoChooserLauncher;
     private Button drawingOverlaysPermissionButton;
     private TextView accessibilityStatusText;
+    private TextView mediaPermissionStatus;
+    private boolean mediaPermissionGranted;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +61,22 @@ public class StatusActivity extends Activity {
         initializeDrawingPermissionsButton(activity);
         initializeOptionsButton();
         initializeAccessibilityStatusText();
+        initializeMediaPermissionsStatus();
+    }
+
+    private void initializeMediaPermissionsStatus() {
+        mediaPermissionStatus = (TextView) findViewById(R.id.mediaPermissionStatus);
+        updateMediaPermissionStatusText();
+        mediaPermissionStatus.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                updateMediaPermissionStatusText();
+            }
+        });
+    }
+
+    private void updateMediaPermissionStatusText() {
+        mediaPermissionStatus.setText(mediaPermissionGranted ? "Media Permission Granted." : "Media permission not granted.");
     }
 
     private void initializeAccessibilityStatusText() {
@@ -90,8 +113,11 @@ public class StatusActivity extends Activity {
                 ensureActivityInjected();
                 if (!isAccessibilityOn())
                     startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
+                else if(!mediaPermissionGranted)
+                    requestMediaPermission();
                 else
                     myoChooserLauncher.chooseMyo(activity);
+
             }
         });
     }
@@ -169,6 +195,28 @@ public class StatusActivity extends Activity {
         return mas.isServiceConnected();
     }
 
+    private void requestMediaPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                Intent intent = new Intent(Manifest.permission.MEDIA_CONTENT_CONTROL,
+                        Uri.parse("package:" + getPackageName()));
+                startActivityForResult(intent, REQUEST_MEDIA_CONTROLS);
+            } else {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.SYSTEM_ALERT_WINDOW},
+                        StatusActivity.REQUEST_DRAWING_RIGHTS);
+            }
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.MEDIA_CONTENT_CONTROL)) {
+                performer.shortToast("You need to let app control media.");
+            } else {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.MEDIA_CONTENT_CONTROL},
+                        REQUEST_MEDIA_CONTROLS);
+            }
+        } else performer.displayMediaControlsNotImplementedWarning();
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
@@ -181,11 +229,17 @@ public class StatusActivity extends Activity {
                 break;
             }
             case REQUEST_DRAWING_RIGHTS: {
-                if (isPermissionGranted((grantResults)))
+                if (isPermissionGranted(grantResults))
                     drawingOverlaysGranted();
                 else
                     drawingOverlaysDenied();
                 break;
+            }
+            case REQUEST_MEDIA_CONTROLS: {
+                if (isPermissionGranted(grantResults)) {
+                    mediaPermissionGranted = true;
+                    updateMediaPermissionStatusText();
+                }
             }
         }
     }
