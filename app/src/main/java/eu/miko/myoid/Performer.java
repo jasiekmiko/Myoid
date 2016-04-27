@@ -250,7 +250,7 @@ public class Performer implements IPerformer {
 
     @Override
     public Event moveOptionsPointerBy(int x, int y) {
-        Icon targetIcon = optionsController.movePointerBy(x, y);
+        OptionsController.Icon targetIcon = optionsController.movePointerBy(x, y);
         if (targetIcon != null) {
             optionsController.resetPointerToCenter();
             return performOption(targetIcon);
@@ -263,7 +263,7 @@ public class Performer implements IPerformer {
         return optionsController.goBack();
     }
 
-    private Event performOption(Icon target) {
+    private Event performOption(OptionsController.Icon target) {
         if (target instanceof OptionsController.MainIcon)
             switch ((OptionsController.MainIcon) target) {
                 case SEARCH:

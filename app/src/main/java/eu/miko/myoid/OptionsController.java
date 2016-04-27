@@ -1,16 +1,18 @@
 package eu.miko.myoid;
 
+import android.content.ContentResolver;
+import android.content.Context;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.media.AudioManager;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
-
-import com.thalmic.myo.Pose;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -204,31 +206,31 @@ public class OptionsController {
 
     void initIcons() {
         int i = 0;
-        for (MainIcon iconName : MainIcon.values()) {
-            ImageView icon = initializeIconInCircle(i, MainIcon.values().length);
-            IconSet.MAIN.addView(iconName, icon);
+        for (MainIcon icon : MainIcon.values()) {
+            ImageView iconView = initializeIconInCircle(icon, i, MainIcon.values().length);
+            IconSet.MAIN.addView(icon, iconView);
             i++;
         }
         i = 0;
-        for (NavIcon iconName : NavIcon.values()) {
-            ImageView icon = initializeIconInCircle(i-1, 4);
-            IconSet.NAV.addView(iconName, icon);
+        for (NavIcon icon : NavIcon.values()) {
+            ImageView iconView = initializeIconInCircle(icon, i-1, 4);
+            IconSet.NAV.addView(icon, iconView);
             i++;
         }
         i = 0;
-        for (QsIcon iconName : QsIcon.values()) {
-            ImageView icon = initializeIconInCircle(i, QsIcon.values().length);
-            IconSet.QS.addView(iconName, icon);
+        for (QsIcon icon : QsIcon.values()) {
+            ImageView iconView = initializeIconInCircle(icon, i, QsIcon.values().length);
+            IconSet.QS.addView(icon, iconView);
             i++;
         }
     }
 
     @NonNull
-    private ImageView initializeIconInCircle(int i, int nIcons) {
-        ImageView icon = createIconImageView();
+    private ImageView initializeIconInCircle(Icon icon, int i, int nIcons) {
+        ImageView iconView = createIconImageView(icon);
         WindowManager.LayoutParams params = createIconLayoutParams(i, nIcons);
-        windowManager.addView(icon, params);
-        return icon;
+        windowManager.addView(iconView, params);
+        return iconView;
     }
 
     @NonNull
@@ -248,11 +250,11 @@ public class OptionsController {
     }
 
     @NonNull
-    private ImageView createIconImageView() {
-        ImageView icon = new ImageView(mas);
-        icon.setImageResource(R.mipmap.ic_launcher);
-        icon.setVisibility(View.GONE);
-        return icon;
+    private ImageView createIconImageView(Icon icon) {
+        ImageView iconView = new ImageView(mas);
+        iconView.setImageResource(icon.getIconImage());
+        iconView.setVisibility(View.GONE);
+        return iconView;
     }
 
     private Rect calculateIconPositions(int index, int nIcons) {
@@ -303,21 +305,85 @@ public class OptionsController {
         }
     }
 
-    enum MainIcon implements Icon {
-        SEARCH,
-        MEDIA_MOUSE,
-        NAV,
-        QS
+    interface Icon {
+        int getIconImage();
     }
+
+    enum MainIcon implements Icon {
+        SEARCH(R.drawable.ic_search_24dp),
+        MEDIA_MOUSE(R.drawable.ic_mouse_24dp),
+        NAV(R.mipmap.ic_launcher),
+        QS(R.drawable.ic_settings_24dp);
+
+        private int iconImage;
+
+        MainIcon(int iconImage) {
+            this.iconImage = iconImage;
+        }
+
+        public int getIconImage() {
+                return iconImage;
+            }
+        }
+
+
     enum NavIcon implements Icon {
         BACK,
         HOME,
-        RECENT
+        RECENT;
+
+        public int getIconImage() {
+            return R.mipmap.ic_launcher;
+        }
     }
+
     enum QsIcon implements Icon {
-        WIFI,
-        TORCH,
-        MUTE,
-        GPS
+        WIFI {
+            @Override
+            public int getIconImage() {
+                try {
+                    int wifiOn = Settings.Global.getInt(getContentResolver(), Settings.Global.WIFI_ON);
+                    if (wifiOn != 0) return R.drawable.ic_signal_wifi_4_bar_24dp;
+                    else return R.drawable.ic_signal_wifi_off_24dp;
+                } catch (Settings.SettingNotFoundException e) {
+                    e.printStackTrace();
+                }
+                return R.mipmap.ic_launcher;
+            }
+        },
+        TORCH {
+            boolean torchOn = false;
+            @Override
+            public int getIconImage() {
+                return R.drawable.ic_torch_toggle_6_24dp;
+            }
+        },
+        MUTE {
+            @Override
+            public int getIconImage() {
+                AudioManager audioManager = (AudioManager) MyoidAccessibilityService.getMyoidService().getSystemService(Context.AUDIO_SERVICE);
+                switch (audioManager.getRingerMode()) {
+                    case AudioManager.RINGER_MODE_NORMAL:
+                        return R.drawable.ic_notifications_black_24dp;
+                    case AudioManager.RINGER_MODE_SILENT:
+                        return R.drawable.ic_notifications_off_24dp;
+                    case AudioManager.RINGER_MODE_VIBRATE:
+                        return R.drawable.ic_notifications_on_24dp;
+                    default:
+                        return R.mipmap.ic_launcher;
+                }
+            }
+        },
+        Orientation {
+            @Override
+            public int getIconImage() {
+                return R.mipmap.ic_launcher;
+            }
+        };
+
+        private static ContentResolver getContentResolver() {
+            Context mas = MyoidAccessibilityService.getMyoidService();
+            return mas.getContentResolver();
+        }
     }
 }
