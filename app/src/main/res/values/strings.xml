@@ -63,4 +63,5 @@
     <string name="drawingOverlayPermission">Click to check drawing permissions</string>
     <string name="accessibilityStatusNotConnected">Accessibility Service not connected</string>
     <string name="accessibilityStatusConnected">Accessibility Service connected</string>
+    <string name="notification_listener_service_name">Notification Listener</string>
 </resources>

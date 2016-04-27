@@ -4,6 +4,8 @@ import com.thalmic.myo.Myo;
 import com.thalmic.myo.Pose;
 
 public interface IPerformer {
+    void initializeMediaControllers();
+
     void displayMediaControlsNotImplementedWarning();
 
     void shortToast(String text);

@@ -1,14 +1,18 @@
 package eu.miko.myoid;
 
 import android.accessibilityservice.AccessibilityService;
+import android.annotation.TargetApi;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.media.session.MediaController;
 import android.media.session.MediaSessionManager;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.speech.RecognizerIntent;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.widget.Toast;
 
 import com.thalmic.myo.Myo;
@@ -26,22 +30,34 @@ public class Performer implements IPerformer {
     private final OverlayPermissionsRequester overlayPermissionsRequester;
     private final MouseController mouseController;
     private MediaSessionManager mediaSessionManager;
-    private List<MediaController> mediaControllers;
+    private List<MediaController> mediaControllers = null;
+    boolean isNotificationListenerStarted = false;
 
     @Inject
     public Performer(OptionsController optionsController, OverlayPermissionsRequester overlayPermissionsRequester, MouseController mouseController) {
         this.optionsController = optionsController;
         this.overlayPermissionsRequester = overlayPermissionsRequester;
         this.mouseController = mouseController;
+
+        startNotificationListener();
     }
 
+    @Override
     public void initializeMediaControllers() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             mediaSessionManager = (MediaSessionManager) mas.getSystemService(Context.MEDIA_SESSION_SERVICE);
-            mediaSessionManager.addOnActiveSessionsChangedListener(new MyoidOnActiveSessionsChangedListener(), null);
-            mediaControllers = mediaSessionManager.getActiveSessions(null);
-        }
-        else displayMediaControlsNotImplementedWarning();
+            ComponentName nlComponentName = new ComponentName(mas, MyoidNotificationListener.class);
+            Looper.prepare();
+            Handler handler = new Handler();
+            mediaSessionManager.addOnActiveSessionsChangedListener(new MyoidOnActiveSessionsChangedListener(), nlComponentName, handler);
+            mediaControllers = mediaSessionManager.getActiveSessions(nlComponentName);
+        } else displayMediaControlsNotImplementedWarning();
+    }
+
+    private void startNotificationListener() {
+        Intent intent = new Intent(mas, MyoidNotificationListener.class);
+        mas.startService(intent);
+        isNotificationListenerStarted = true;
     }
 
     @Override
@@ -136,31 +152,29 @@ public class Performer implements IPerformer {
 
     @Override
     public void MediaNext() {
-        for (MediaController mc : mediaControllers) {
-            KeyEvent keyEvent = new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_NEXT);
-            sendKeyEventToMediaController(mc, keyEvent);
+        if(mediaControllers == null) startNotificationListener();
+        else {
+            for (MediaController mc : mediaControllers) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+                    mc.getTransportControls().skipToNext();
+                else
+                    displayMediaControlsNotImplementedWarning();
+            }
         }
     }
 
     @Override
     public void MediaPrev() {
-        for (MediaController mc : mediaControllers) {
-            KeyEvent keyEvent = new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PREVIOUS);
-            sendKeyEventToMediaController(mc, keyEvent);
+        if (mediaControllers == null) startNotificationListener();
+        else {
+            for (MediaController mc : mediaControllers) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+                    mc.getTransportControls().skipToPrevious();
+                else
+                    displayMediaControlsNotImplementedWarning();
+            }
         }
-    }
 
-    private void sendKeyEventToMediaController(MediaController mc, KeyEvent keyEvent) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            if (mc.dispatchMediaButtonEvent(keyEvent)){
-                Log.d(TAG, String.format("%s sent to %s", keyEvent.getDisplayLabel(), mc.getPackageName()));
-            }
-            else {
-                Log.d(TAG, String.format("%s not sent to %s", keyEvent.getDisplayLabel(), mc.getPackageName()));
-            }
-        }
-        else
-            displayMediaControlsNotImplementedWarning();
     }
 
     @Override
@@ -281,6 +295,7 @@ public class Performer implements IPerformer {
         mas.startActivity(intent);
     }
 
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private class MyoidOnActiveSessionsChangedListener implements MediaSessionManager.OnActiveSessionsChangedListener {
         @Override
         public void onActiveSessionsChanged(List<MediaController> controllers) {

@@ -113,8 +113,6 @@ public class StatusActivity extends Activity {
                 ensureActivityInjected();
                 if (!isAccessibilityOn())
                     startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
-                else if(!mediaPermissionGranted)
-                    requestMediaPermission();
                 else
                     myoChooserLauncher.chooseMyo(activity);
 
