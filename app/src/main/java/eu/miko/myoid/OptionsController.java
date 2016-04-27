@@ -2,10 +2,13 @@ package eu.miko.myoid;
 
 import android.content.ContentResolver;
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
+import android.os.Build;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.view.Gravity;
@@ -252,7 +255,16 @@ public class OptionsController {
     @NonNull
     private ImageView createIconImageView(Icon icon) {
         ImageView iconView = new ImageView(mas);
-        iconView.setImageResource(icon.getIconImage());
+        Drawable iconImage;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            iconImage = mas.getResources().getDrawable(icon.getIconImage(), null);//TODO investigate themes.
+            assert iconImage != null;
+            iconImage.setTint(Color.WHITE);
+        } else {
+            //noinspection deprecation
+            iconImage = mas.getResources().getDrawable(icon.getIconImage());
+        }
+        iconView.setImageDrawable(iconImage);
         iconView.setVisibility(View.GONE);
         return iconView;
     }
@@ -312,7 +324,7 @@ public class OptionsController {
     enum MainIcon implements Icon {
         SEARCH(R.drawable.ic_search_24dp),
         MEDIA_MOUSE(R.drawable.ic_mouse_24dp),
-        NAV(R.mipmap.ic_launcher),
+        NAV(R.drawable.ic_navigation_24dp),
         QS(R.drawable.ic_settings_24dp);
 
         private int iconImage;
@@ -328,12 +340,18 @@ public class OptionsController {
 
 
     enum NavIcon implements Icon {
-        BACK,
-        HOME,
-        RECENT;
+        BACK(R.drawable.ic_nav_back_24dp),
+        HOME(R.drawable.ic_nav_home_24dp),
+        RECENT(R.drawable.ic_nav_recent_24dp);
+
+        private int iconImage;
+
+        NavIcon(int iconImage) {
+            this.iconImage = iconImage;
+        }
 
         public int getIconImage() {
-            return R.mipmap.ic_launcher;
+            return iconImage;
         }
     }
 
@@ -368,16 +386,24 @@ public class OptionsController {
                     case AudioManager.RINGER_MODE_SILENT:
                         return R.drawable.ic_notifications_off_24dp;
                     case AudioManager.RINGER_MODE_VIBRATE:
-                        return R.drawable.ic_notifications_on_24dp;
+                        return R.drawable.ic_vibration_24dp;
                     default:
                         return R.mipmap.ic_launcher;
                 }
             }
         },
-        Orientation {
+        ORIENTATION {
             @Override
             public int getIconImage() {
-                return R.mipmap.ic_launcher;
+                boolean rotationLocked = true;
+                try {
+                    int rotationLockedSetting = Settings.System.getInt(getContentResolver(), Settings.System.ACCELEROMETER_ROTATION);
+                    rotationLocked = rotationLockedSetting == 0;
+                } catch (Settings.SettingNotFoundException e) {
+                    e.printStackTrace();
+                }
+                if(rotationLocked) return R.drawable.ic_screen_lock_portrait_24dp;
+                else return R.drawable.ic_screen_rotation_24dp;
             }
         };
 

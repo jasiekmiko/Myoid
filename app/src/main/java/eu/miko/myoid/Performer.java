@@ -297,7 +297,7 @@ public class Performer implements IPerformer {
                     break;
                 case MUTE:
                     break;
-                case GPS:
+                case ORIENTATION:
                     break;
             }
         return null;
