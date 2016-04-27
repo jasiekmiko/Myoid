@@ -50,7 +50,5 @@ public interface IPerformer {
 
     void changePointerImage(Pose pose);
 
-    void MediaNext();
-
-    void MediaPrev();
+    void performMediaAction(Media.Action action);
 }

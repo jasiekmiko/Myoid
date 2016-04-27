@@ -7,10 +7,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.session.MediaController;
 import android.media.session.MediaSessionManager;
+import android.media.session.PlaybackState;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Message;
 import android.speech.RecognizerIntent;
 import android.util.Log;
 import android.widget.Toast;
@@ -32,6 +32,8 @@ public class Performer implements IPerformer {
     private MediaSessionManager mediaSessionManager;
     private List<MediaController> mediaControllers = null;
     boolean isNotificationListenerStarted = false;
+    private MyoidAccessibilityService mas = MyoidAccessibilityService.getMyoidService();
+    private ComponentName nlComponentName = new ComponentName(mas, MyoidNotificationListener.class);
 
     @Inject
     public Performer(OptionsController optionsController, OverlayPermissionsRequester overlayPermissionsRequester, MouseController mouseController) {
@@ -46,12 +48,21 @@ public class Performer implements IPerformer {
     public void initializeMediaControllers() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             mediaSessionManager = (MediaSessionManager) mas.getSystemService(Context.MEDIA_SESSION_SERVICE);
-            ComponentName nlComponentName = new ComponentName(mas, MyoidNotificationListener.class);
-            Looper.prepare();
-            Handler handler = new Handler();
-            mediaSessionManager.addOnActiveSessionsChangedListener(new MyoidOnActiveSessionsChangedListener(), nlComponentName, handler);
-            mediaControllers = mediaSessionManager.getActiveSessions(nlComponentName);
+            addActiveSessionsListener();
+            updateMediaControllers();
         } else displayMediaControlsNotImplementedWarning();
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public void addActiveSessionsListener() {
+        Looper.prepare();
+        Handler handler = new Handler();
+        mediaSessionManager.addOnActiveSessionsChangedListener(new MyoidOnActiveSessionsChangedListener(), nlComponentName, handler);
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public void updateMediaControllers() {
+        mediaControllers = mediaSessionManager.getActiveSessions(nlComponentName);
     }
 
     private void startNotificationListener() {
@@ -68,8 +79,6 @@ public class Performer implements IPerformer {
     }
 
     private Myo myo;
-
-    private MyoidAccessibilityService mas = MyoidAccessibilityService.getMyoidService();
 
     @Override
     public void shortToast(String text) {
@@ -151,30 +160,35 @@ public class Performer implements IPerformer {
     }
 
     @Override
-    public void MediaNext() {
-        if(mediaControllers == null) startNotificationListener();
-        else {
-            for (MediaController mc : mediaControllers) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-                    mc.getTransportControls().skipToNext();
-                else
-                    displayMediaControlsNotImplementedWarning();
-            }
-        }
-    }
-
-    @Override
-    public void MediaPrev() {
+    public void performMediaAction(Media.Action action) {
         if (mediaControllers == null) startNotificationListener();
-        else {
+        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            updateMediaControllers();
             for (MediaController mc : mediaControllers) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-                    mc.getTransportControls().skipToPrevious();
-                else
-                    displayMediaControlsNotImplementedWarning();
+                MediaController.TransportControls transportControls = mc.getTransportControls();
+                switch(action){
+                    case NEXT:
+                        transportControls.skipToNext();
+                        break;
+                    case PREV:
+                        transportControls.skipToPrevious();
+                        break;
+                    case PLAY_PAUSE:
+                        PlaybackState playbackState = mc.getPlaybackState();
+                        int state = playbackState != null ? playbackState.getState() : PlaybackState.STATE_NONE;
+                        switch (state) {
+                            case PlaybackState.STATE_PAUSED:
+                            case PlaybackState.STATE_STOPPED:
+                                transportControls.play();
+                                break;
+                            case PlaybackState.STATE_PLAYING:
+                                transportControls.pause();
+                        }
+                        break;
+                }
             }
-        }
-
+        } else
+            displayMediaControlsNotImplementedWarning();
     }
 
     @Override

@@ -29,12 +29,13 @@ public class Media extends Mode {
                 poseResult = Event.FIST;
                 break;
             case WAVE_IN:
-                performer.MediaNext();
+                performer.performMediaAction(Action.NEXT);
                 break;
             case WAVE_OUT:
-                performer.MediaPrev();
+                performer.performMediaAction(Action.PREV);
                 break;
             case FINGERS_SPREAD:
+                performer.performMediaAction(Action.PLAY_PAUSE);//TODO: Temporary, in the end should happen only when options are not entered.
                 poseResult = Event.SPREAD;
             case DOUBLE_TAP:
                 performer.lockMyo();
@@ -68,5 +69,11 @@ public class Media extends Mode {
     @Override
     public void resolveUnlock() {
         performer.unlockMyoTimed();
+    }
+
+    public enum Action {
+        NEXT,
+        PREV,
+        PLAY_PAUSE
     }
 }
