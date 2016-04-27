@@ -35,7 +35,7 @@ public class MyoidNotificationListener extends NotificationListenerService{
 
     @Override
     public void onListenerConnected() {
-        Log.d(TAG, "Listener connected.");
+        Log.d(TAG, "Notification listener connected.");
         if (ensureListenerInjected()) {
             performer.initializeMediaControllers();
         }
