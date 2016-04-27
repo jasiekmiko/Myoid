@@ -10,7 +10,8 @@ import dagger.Provides;
 @Module(
     injects = {
         MyoidAccessibilityService.class,
-        StatusActivity.class
+        StatusActivity.class,
+        MyoidNotificationListener.class
     }
 )
 public class DaggerModule {

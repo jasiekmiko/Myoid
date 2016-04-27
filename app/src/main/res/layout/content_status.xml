@@ -40,6 +40,15 @@
             android:text="Myoid screen"
             android:id="@+id/myoidScreenTestButton"
             android:layout_gravity="center_horizontal" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="Large Text"
+            android:id="@+id/mediaPermissionStatus"
+            android:layout_gravity="center_horizontal" />
+
     </LinearLayout>
 
 

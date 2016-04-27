@@ -1,14 +1,24 @@
 package eu.miko.myoid;
 
 import android.accessibilityservice.AccessibilityService;
+import android.annotation.TargetApi;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.media.session.MediaController;
+import android.media.session.MediaSessionManager;
+import android.media.session.PlaybackState;
+import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.speech.RecognizerIntent;
 import android.util.Log;
-import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.thalmic.myo.Myo;
 import com.thalmic.myo.Pose;
+
+import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -19,17 +29,56 @@ public class Performer implements IPerformer {
     private final OptionsController optionsController;
     private final OverlayPermissionsRequester overlayPermissionsRequester;
     private final MouseController mouseController;
+    private MediaSessionManager mediaSessionManager;
+    private List<MediaController> mediaControllers = null;
+    boolean isNotificationListenerStarted = false;
+    private MyoidAccessibilityService mas = MyoidAccessibilityService.getMyoidService();
+    private ComponentName nlComponentName = new ComponentName(mas, MyoidNotificationListener.class);
 
     @Inject
-    public Performer(WindowManager windowManager, OptionsController optionsController, OverlayPermissionsRequester overlayPermissionsRequester, MouseController mouseController, MouseController mouseController1) {
+    public Performer(OptionsController optionsController, OverlayPermissionsRequester overlayPermissionsRequester, MouseController mouseController) {
         this.optionsController = optionsController;
         this.overlayPermissionsRequester = overlayPermissionsRequester;
-        this.mouseController = mouseController1;
+        this.mouseController = mouseController;
+
+        startNotificationListener();
+    }
+
+    @Override
+    public void initializeMediaControllers() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            mediaSessionManager = (MediaSessionManager) mas.getSystemService(Context.MEDIA_SESSION_SERVICE);
+            addActiveSessionsListener();
+            updateMediaControllers();
+        } else displayMediaControlsNotImplementedWarning();
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public void addActiveSessionsListener() {
+        Looper.prepare();
+        Handler handler = new Handler();
+        mediaSessionManager.addOnActiveSessionsChangedListener(new MyoidOnActiveSessionsChangedListener(), nlComponentName, handler);
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public void updateMediaControllers() {
+        mediaControllers = mediaSessionManager.getActiveSessions(nlComponentName);
+    }
+
+    private void startNotificationListener() {
+        Intent intent = new Intent(mas, MyoidNotificationListener.class);
+        mas.startService(intent);
+        isNotificationListenerStarted = true;
+    }
+
+    @Override
+    public void displayMediaControlsNotImplementedWarning() {
+        String warningMessage = "Media controls not implemented for this version of Android.";
+        Log.w(TAG, warningMessage);
+        shortToast(warningMessage);
     }
 
     private Myo myo;
-
-    private MyoidAccessibilityService mas = MyoidAccessibilityService.getMyoidService();
 
     @Override
     public void shortToast(String text) {
@@ -108,6 +157,38 @@ public class Performer implements IPerformer {
     @Override
     public void hideOptions() {
         optionsController.dismissOptions();
+    }
+
+    @Override
+    public void performMediaAction(Media.Action action) {
+        if (mediaControllers == null) startNotificationListener();
+        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            updateMediaControllers();
+            for (MediaController mc : mediaControllers) {
+                MediaController.TransportControls transportControls = mc.getTransportControls();
+                switch(action){
+                    case NEXT:
+                        transportControls.skipToNext();
+                        break;
+                    case PREV:
+                        transportControls.skipToPrevious();
+                        break;
+                    case PLAY_PAUSE:
+                        PlaybackState playbackState = mc.getPlaybackState();
+                        int state = playbackState != null ? playbackState.getState() : PlaybackState.STATE_NONE;
+                        switch (state) {
+                            case PlaybackState.STATE_PAUSED:
+                            case PlaybackState.STATE_STOPPED:
+                                transportControls.play();
+                                break;
+                            case PlaybackState.STATE_PLAYING:
+                                transportControls.pause();
+                        }
+                        break;
+                }
+            }
+        } else
+            displayMediaControlsNotImplementedWarning();
     }
 
     @Override
@@ -226,5 +307,13 @@ public class Performer implements IPerformer {
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         mas.startActivity(intent);
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private class MyoidOnActiveSessionsChangedListener implements MediaSessionManager.OnActiveSessionsChangedListener {
+        @Override
+        public void onActiveSessionsChanged(List<MediaController> controllers) {
+            mediaControllers = controllers;
+        }
     }
 }
