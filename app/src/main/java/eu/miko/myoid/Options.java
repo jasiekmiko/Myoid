@@ -1,7 +1,5 @@
 package eu.miko.myoid;
 
-import android.support.annotation.NonNull;
-
 import com.thalmic.myo.Pose;
 import com.thalmic.myo.Quaternion;
 import com.thalmic.myo.Vector3;
@@ -12,6 +10,7 @@ import javax.inject.Singleton;
 @Singleton
 public class Options extends Mode {
     static public State mouseOrMedia = State.MOUSE;
+    public static boolean torchOn = false;
 
     @Inject
     public Options(Performer performer) {
@@ -42,7 +41,6 @@ public class Options extends Mode {
         return event;
     }
 
-    @NonNull
     private boolean goBackAndCheckIfOptionsClose() {
         return performer.optionsGoBack();
     }
@@ -53,8 +51,7 @@ public class Options extends Mode {
         float pitch = (float) Math.toDegrees(Quaternion.pitch(rotation));
         float yaw = (float) Math.toDegrees(Quaternion.yaw(rotation));
 
-        Event optionSelected = performer.moveOptionsPointerBy(xMovement(yaw), yMovement(pitch));
-        return optionSelected;
+        return performer.moveOptionsPointerBy(xMovement(yaw), yMovement(pitch));
     }
 
     @Override

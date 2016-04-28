@@ -7,8 +7,6 @@ import com.thalmic.myo.Vector3;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import static java.lang.Math.abs;
-
 @Singleton
 class Mouse extends Mode {
     @Inject

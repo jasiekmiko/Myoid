@@ -3,15 +3,12 @@ package eu.miko.myoid;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.Rect;
-import android.test.RenamingDelegatingContext;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.ImageView;
-
-import com.thalmic.myo.Pose;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;

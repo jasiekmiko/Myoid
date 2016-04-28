@@ -2,29 +2,31 @@ package eu.miko.myoid;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.thalmic.myo.scanner.ScanActivity;
+
 import javax.inject.Inject;
 
 public class StatusActivity extends Activity {
-    final static int REQUEST_FINE_LOCATION = 101;
-    public static final int REQUEST_DRAWING_RIGHTS = 102;
+    static final int REQUEST_FINE_LOCATION = 101;
+    static final int REQUEST_DRAWING_RIGHTS = 102;
+    static final int REQUEST_WIFI_PERMISSIONS = 103;
+    static final int REQUEST_FLASHLIGHT_PERMISSIONS = 104;
+    static final int REQUEST_SYSTEM_SETTINGS_PERMISSIONS = 105;
     private final String TAG = "StatusActivity";
     private Boolean injected = false;
     @Inject IPerformer performer;
-    @Inject OverlayPermissionsRequester overlayPermissionsRequester;
-    @Inject MyoChooserLauncher myoChooserLauncher;
+    @Inject IMyoHubManager myoHubManager;
     private Button drawingOverlaysPermissionButton;
     private TextView accessibilityStatusText;
     private TextView mediaPermissionStatus;
@@ -52,7 +54,7 @@ public class StatusActivity extends Activity {
 
     private void initializeUiComponents() {
         final Activity activity = this;
-        initializeFAB(activity);
+        initializeFAB();
         initializeDrawingPermissionsButton(activity);
         initializeOptionsButton();
         initializeAccessibilityStatusText();
@@ -71,7 +73,7 @@ public class StatusActivity extends Activity {
     }
 
     private void updateMediaPermissionStatusText() {
-        mediaPermissionStatus.setText(isNotificationListenerConnected() ? "Media Permission Granted." : "Media permission not granted.");
+        mediaPermissionStatus.setText(PermissionsController.isNotificationListenerConnected(this) ? "Media Permission Granted." : "Media permission not granted.");
     }
 
     private void initializeAccessibilityStatusText() {
@@ -86,7 +88,7 @@ public class StatusActivity extends Activity {
     }
 
     private void updateAccessibilityStatusText() {
-        accessibilityStatusText.setText(isServiceConnected() ? R.string.accessibilityStatusConnected : R.string.accessibilityStatusNotConnected);
+        accessibilityStatusText.setText(MyoidAccessibilityService.isServiceConnected() ? R.string.accessibilityStatusConnected : R.string.accessibilityStatusNotConnected);
     }
 
     private void initializeOptionsButton() {
@@ -100,34 +102,31 @@ public class StatusActivity extends Activity {
         });
     }
 
-    private void initializeFAB(final Activity activity) {
+    private void initializeFAB() {
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        final Activity activity = this;
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ensureActivityInjected();
-                if (!isAccessibilityOn())
-                    startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
-                else if (!isNotificationListenerConnected())
-                    startNotificationsAccessSettingsScreen();
-                else if (!overlayPermissionsRequester.checkDrawingPermissions(activity))
-                    overlayPermissionsRequester.requestDrawingPermissions(activity);
-                else
-                    myoChooserLauncher.chooseMyo(activity);
-
+                checkAllPermissionsAndLaunchMyoChooser(activity);
             }
         });
     }
 
-    private boolean isNotificationListenerConnected() {
-        ContentResolver contentResolver = getContentResolver();
-        String enabledNotificationListeners = Settings.Secure.getString(contentResolver, "enabled_notification_listeners");
-        String packageName = getPackageName();
-        return enabledNotificationListeners != null && enabledNotificationListeners.contains(packageName);
+    private void checkAllPermissionsAndLaunchMyoChooser(Activity activity) {
+        ensureActivityInjected();
+        if (PermissionsController.checkAllPermissions(activity))
+            checkHubStartedAndLaunchMyoChooser();
     }
 
-    private void startNotificationsAccessSettingsScreen() {
-        startActivity(new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"));
+    private void checkHubStartedAndLaunchMyoChooser() {
+        if (myoHubManager.getIfHubInitialized()) {
+            Intent intent = new Intent(this, ScanActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        } else {
+            Log.e(TAG, "Hub not initialized.");
+        }
     }
 
     private void initializeDrawingPermissionsButton(final Activity activity) {
@@ -136,54 +135,16 @@ public class StatusActivity extends Activity {
             @Override
             public void onClick(View v) {
                 ensureActivityInjected();
-                overlayPermissionsRequester.checkAndRequestDrawingPermissions(activity);
+                PermissionsController.checkAndRequestDrawingPermissions(activity);
             }
         });
     }
 
     private void updateDrawingOverlaysButtonText() {
-        if (overlayPermissionsRequester.checkDrawingPermissions(this))
+        if (PermissionsController.checkDrawingPermissions(this))
             drawingOverlaysPermissionButton.setText(R.string.mediaPermissionGranted);
         else
             drawingOverlaysPermissionButton.setText(R.string.mediaPermissionNotGranted);
-    }
-
-    private boolean isAccessibilityOn() {
-        int accessibilityEnabled = 0;
-        final String service = getPackageName() + "/" + MyoidAccessibilityService.class.getCanonicalName();
-        try {
-            accessibilityEnabled = Settings.Secure.getInt(
-                    getApplicationContext().getContentResolver(),
-                    android.provider.Settings.Secure.ACCESSIBILITY_ENABLED);
-            Log.v(TAG, "accessibilityEnabled = " + accessibilityEnabled);
-        } catch (Settings.SettingNotFoundException e) {
-            Log.e(TAG, "Error finding setting, default accessibility to not found: "
-                    + e.getMessage());
-        }
-        TextUtils.SimpleStringSplitter mStringColonSplitter = new TextUtils.SimpleStringSplitter(':');
-
-        if (accessibilityEnabled == 1) {
-            Log.v(TAG, "***ACCESSIBILITY IS ENABLED*** -----------------");
-            String settingValue = Settings.Secure.getString(
-                    getApplicationContext().getContentResolver(),
-                    Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
-            if (settingValue != null) {
-                mStringColonSplitter.setString(settingValue);
-                while (mStringColonSplitter.hasNext()) {
-                    String accessibilityService = mStringColonSplitter.next();
-
-                    Log.v(TAG, "-------------- > accessibilityService :: " + accessibilityService + " " + service);
-                    if (accessibilityService.equalsIgnoreCase(service)) {
-                        Log.v(TAG, "We've found the correct setting - accessibility is switched on!");
-                        return true;
-                    }
-                }
-            }
-        } else {
-            Log.v(TAG, "***ACCESSIBILITY IS DISABLED***");
-        }
-        return false;
-
     }
 
     public void ensureActivityInjected() {
@@ -193,26 +154,51 @@ public class StatusActivity extends Activity {
         }
     }
 
-    private boolean isServiceConnected() {
-        return MyoidAccessibilityService.isServiceConnected();
-    }
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
             case REQUEST_FINE_LOCATION: {
-                if (isPermissionGranted(grantResults)) {
-                    MyoChooserLauncher.startMyoChooser(this);
+                if (arePermissionsGranted(grantResults)) {
+                    Log.d(TAG, "Location permission granted.");
+                    checkAllPermissionsAndLaunchMyoChooser(this);
                 } else {
                     Log.i(TAG, "Location permission denied.");
                 }
                 break;
             }
             case REQUEST_DRAWING_RIGHTS: {
-                if (isPermissionGranted(grantResults))
+                if (arePermissionsGranted(grantResults)){
                     drawingOverlaysGranted();
+                    checkAllPermissionsAndLaunchMyoChooser(this);
+                }
                 else
                     drawingOverlaysDenied();
+                break;
+            }
+            case REQUEST_WIFI_PERMISSIONS: {
+                if (arePermissionsGranted(grantResults)){
+                    Log.d(TAG, "Wifi permissions granted.");
+                    checkAllPermissionsAndLaunchMyoChooser(this);
+                }
+                else
+                    Log.d(TAG, "Wifi permissions not granted.");
+                break;
+            }
+            case REQUEST_FLASHLIGHT_PERMISSIONS: {
+                if (arePermissionsGranted(grantResults)) {
+                    Log.d(TAG, "Flashlight permissions granted");
+                    checkAllPermissionsAndLaunchMyoChooser(this);
+                } else
+                    Log.d(TAG, "Flashlight permissions denied.");
+                break;
+            }
+            case REQUEST_SYSTEM_SETTINGS_PERMISSIONS: {
+                if (arePermissionsGranted(grantResults)) {
+                    Log.d(TAG, "WRITE_SETTINGS permission denied.");
+                    checkAllPermissionsAndLaunchMyoChooser(this);
+                }
+                else
+                    Log.d (TAG, "WRITE_SETTINGS permission denied.");
                 break;
             }
         }
@@ -223,8 +209,10 @@ public class StatusActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
             case REQUEST_DRAWING_RIGHTS: {
-                if (Settings.canDrawOverlays(MyoidAccessibilityService.getMyoidService()))
+                if (Settings.canDrawOverlays(MyoidAccessibilityService.getMyoidService())){
                     drawingOverlaysGranted();
+                    checkAllPermissionsAndLaunchMyoChooser(this);
+                }
                 else
                     drawingOverlaysDenied();
                 break;
@@ -243,8 +231,13 @@ public class StatusActivity extends Activity {
     }
 
 
-    private boolean isPermissionGranted(@NonNull int[] grantResults) {
-        return grantResults.length > 0
-                && grantResults[0] == PackageManager.PERMISSION_GRANTED;
+    private boolean arePermissionsGranted(@NonNull int[] grantResults) {
+        if (grantResults.length == 0) {
+            Log.w(TAG, "Empty grantResults array");
+            return false;
+        }
+        for (int grantResult : grantResults)
+            if (grantResult == PackageManager.PERMISSION_DENIED) return false;
+        return true;
     }
 }
