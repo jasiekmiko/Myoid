@@ -3,6 +3,7 @@ package eu.miko.myoid;
 import android.accessibilityservice.AccessibilityService;
 import android.annotation.TargetApi;
 import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.camera2.CameraAccessException;
@@ -15,6 +16,7 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.Settings;
 import android.speech.RecognizerIntent;
 import android.util.Log;
 import android.widget.Toast;
@@ -308,68 +310,69 @@ public class Performer implements IPerformer {
         } else if (target instanceof OptionsController.QsIcon)
             switch ((OptionsController.QsIcon) target) {
                 case WIFI:
-                    checkForPermissionsAndToggleWifi();
+                    toggleWifi();
                     break;
                 case TORCH:
-                    checkSystemVersionAndPermissionsAndToggleTorch();
+                    checkSystemVersionAndToggleTorch();
                     break;
                 case MUTE:
                     break;
                 case ORIENTATION:
+                    toggleOrientation();
                     break;
             }
         return null;
     }
 
-    private void checkSystemVersionAndPermissionsAndToggleTorch() {
+    private void toggleOrientation() {
+        try {
+            ContentResolver cr = mas.getContentResolver();
+            int currentState = Settings.System.getInt(cr, Settings.System.ACCELEROMETER_ROTATION);
+            Settings.System.putInt(cr, Settings.System.ACCELEROMETER_ROTATION, 1 - currentState);
+        } catch (Settings.SettingNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void checkSystemVersionAndToggleTorch() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            checkPermissionsAndToggleTorch();
+            toggleTorch();
         } else {
             String message = "Torch not available for devices with this system version (below M).";
             shortToast(message);
             Log.d(TAG, message);
         }
-        
+
     }
 
     @TargetApi(Build.VERSION_CODES.M)
-    private void checkPermissionsAndToggleTorch() {
-        if (isTorchPermissionGranted) {
-            try {
-                CameraManager cameraManager = (CameraManager) mas.getSystemService(Context.CAMERA_SERVICE);
-                String[] cameras = cameraManager.getCameraIdList();
-                for (String camera : cameras) {
-                    CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(camera);
-                    boolean flashlightPresent = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
-                    if (flashlightPresent) {
-                        cameraManager.setTorchMode(camera, !Options.torchOn);
-                        Options.torchOn = !Options.torchOn;
-                    }
+    private void toggleTorch() {
+        try {
+            CameraManager cameraManager = (CameraManager) mas.getSystemService(Context.CAMERA_SERVICE);
+            String[] cameras = cameraManager.getCameraIdList();
+            for (String camera : cameras) {
+                CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(camera);
+                //noinspection ConstantConditions
+                boolean flashlightPresent = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
+                if (flashlightPresent) {
+                    cameraManager.setTorchMode(camera, !Options.torchOn);
+                    Options.torchOn = !Options.torchOn;
                 }
-            } catch (CameraAccessException e) {
-                e.printStackTrace();
             }
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
         }
     }
 
-    private void checkForPermissionsAndToggleWifi() {
-        if (isWifiPermissionGranted) {
-            WifiManager wifiManager = (WifiManager) mas.getSystemService(Context.WIFI_SERVICE);
-            wifiManager.setWifiEnabled(!wifiManager.isWifiEnabled());
-        } else {
-            shortToast("WiFi permissions not granted");
-        }
+    private void toggleWifi() {
+        WifiManager wifiManager = (WifiManager) mas.getSystemService(Context.WIFI_SERVICE);
+        wifiManager.setWifiEnabled(!wifiManager.isWifiEnabled());
     }
 
     private void openVoiceSearch() {
         Intent intent = new Intent(RecognizerIntent.ACTION_VOICE_SEARCH_HANDS_FREE);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         mas.startActivity(intent);
-    }
-
-    @Override
-    public void setIsTorchPermissionGranted(boolean isTorchPermissionGranted) {
-        this.isTorchPermissionGranted = isTorchPermissionGranted;
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)

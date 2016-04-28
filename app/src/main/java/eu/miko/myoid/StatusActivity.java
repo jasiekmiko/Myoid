@@ -1,11 +1,14 @@
 package eu.miko.myoid;
 
 import android.Manifest;
+import android.Manifest.permission;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
@@ -25,6 +28,7 @@ public class StatusActivity extends Activity {
     public static final int REQUEST_DRAWING_RIGHTS = 102;
     private static final int REQUEST_WIFI_PERMISSIONS = 103;
     private static final int REQUEST_FLASHLIGHT_PERMISSIONS = 104;
+    private static final int REQUEST_SYSTEM_SETTINGS_PERMISSIONS = 105;
     private final String TAG = "StatusActivity";
     private Boolean injected = false;
     @Inject IPerformer performer;
@@ -124,33 +128,48 @@ public class StatusActivity extends Activity {
         else if (!overlayPermissionsRequester.checkDrawingPermissions(this))
             overlayPermissionsRequester.requestDrawingPermissions(this);
         else if (!WifiPermissionsGranted())
-            requestWifiPermissions();
-        else
-        if (!flashlightPermissionGranted())
-            requestFlashlightPermission();
+            requestPermission(new String[] {permission.ACCESS_WIFI_STATE, permission.CHANGE_WIFI_STATE}, REQUEST_WIFI_PERMISSIONS);
+        else if (!isPermissionGranted(permission.FLASHLIGHT))
+            requestPermission(new String[] {permission.FLASHLIGHT}, REQUEST_FLASHLIGHT_PERMISSIONS);
+        else if (!isWriteSettingsPermissionGranted())
+            requestWriteSettingsPermission();
         else
             myoChooserLauncher.checkForLocationPermissionAndLaunchChooser(this);
     }
 
-    private void requestFlashlightPermission() {
-        ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.CHANGE_WIFI_STATE, Manifest.permission.FLASHLIGHT},
-                StatusActivity.REQUEST_FLASHLIGHT_PERMISSIONS);
+    private boolean isWriteSettingsPermissionGranted() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+            return Settings.System.canWrite(this);
+        else
+            return isPermissionGranted(permission.WRITE_SETTINGS);
     }
 
-    private boolean flashlightPermissionGranted() {
-        int permissionGrant = ContextCompat.checkSelfPermission(this, Manifest.permission.FLASHLIGHT);
-        if (permissionGrant == PackageManager.PERMISSION_GRANTED) {
-            performer.setIsTorchPermissionGranted(true);
-            return true;
+    private void requestWriteSettingsPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_WRITE_SETTINGS);
+                intent.setData(Uri.parse("package:" + getPackageName()));
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
         }
         else
-            return false;
+            requestPermission(new String[] {permission.WRITE_SETTINGS}, REQUEST_SYSTEM_SETTINGS_PERMISSIONS);
+    }
+
+
+    private void requestPermission(String[] permissions, int requestCode) {
+        ActivityCompat.requestPermissions(this,
+                permissions,
+                requestCode);
+    }
+
+    private boolean isPermissionGranted(String permission) {
+        int permissionGrant = ContextCompat.checkSelfPermission(this, permission);
+        return permissionGrant == PackageManager.PERMISSION_GRANTED;
     }
 
     private boolean WifiPermissionsGranted() {
-        int changeStatePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.CHANGE_WIFI_STATE);
-        int accessStatePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_WIFI_STATE);
+        int changeStatePermission = ContextCompat.checkSelfPermission(this, permission.CHANGE_WIFI_STATE);
+        int accessStatePermission = ContextCompat.checkSelfPermission(this, permission.ACCESS_WIFI_STATE);
         if (changeStatePermission == PackageManager.PERMISSION_GRANTED
                 && accessStatePermission == PackageManager.PERMISSION_GRANTED) {
             performer.setAreWifiPermissionsGranted(true);
@@ -158,13 +177,6 @@ public class StatusActivity extends Activity {
         }
         return false;
     }
-
-    private void requestWifiPermissions() {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.CHANGE_WIFI_STATE, Manifest.permission.ACCESS_WIFI_STATE},
-                    StatusActivity.REQUEST_WIFI_PERMISSIONS);
-    }
-
 
     private boolean isNotificationListenerConnected() {
         ContentResolver contentResolver = getContentResolver();
@@ -272,6 +284,7 @@ public class StatusActivity extends Activity {
                 }
                 else
                     Log.d(TAG, "Wifi permissions not granted.");
+                break;
             }
             case REQUEST_FLASHLIGHT_PERMISSIONS: {
                 if (arePermissionsGranted(grantResults)) {
@@ -279,6 +292,16 @@ public class StatusActivity extends Activity {
                     checkAllPermissionsAndLaunchMyoChooser();
                 } else
                     Log.d(TAG, "Flashlight permissions denied.");
+                break;
+            }
+            case REQUEST_SYSTEM_SETTINGS_PERMISSIONS: {
+                if (arePermissionsGranted(grantResults)) {
+                    Log.d(TAG, "WRITE_SETTINGS permission denied.");
+                    checkAllPermissionsAndLaunchMyoChooser();
+                }
+                else
+                    Log.d (TAG, "WRITE_SETTINGS permission denied.");
+                break;
             }
         }
     }

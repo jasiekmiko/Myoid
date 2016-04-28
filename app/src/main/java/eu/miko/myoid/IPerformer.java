@@ -52,5 +52,4 @@ public interface IPerformer {
 
     void setAreWifiPermissionsGranted(boolean b);
 
-    void setIsTorchPermissionGranted(boolean isTorchPermissionGranted);
 }
