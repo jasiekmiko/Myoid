@@ -24,7 +24,7 @@ public class MyoChooserLauncher {
         this.myoHubManager = myoHubManager;
     }
 
-    public void chooseMyo(Activity intentCaller) {
+    public void checkForLocationPermissionAndLaunchChooser(Activity intentCaller) {
         if (myoHubManager.getIfHubInitialized()) {
             int permissionCheck = ContextCompat.checkSelfPermission(intentCaller, Manifest.permission.ACCESS_FINE_LOCATION);
             if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
@@ -40,7 +40,7 @@ public class MyoChooserLauncher {
         }
     }
 
-    public static void startMyoChooser(Context intentCaller) {
+    private static void startMyoChooser(Context intentCaller) {
         Intent intent = new Intent(intentCaller, ScanActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intentCaller.startActivity(intent);

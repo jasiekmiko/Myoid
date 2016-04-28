@@ -136,7 +136,7 @@ public class OptionsController {
         windowManager.updateViewLayout(pointer, pointerParams);
     }
 
-    public Icon movePointerBy(int x, int y) {
+    public Icon movePointerByAndChooseIconIfHit(int x, int y) {
         if (graphicsInitialized) {
             int newX = pointerParams.x + x;
             int newY = pointerParams.y + y;
@@ -145,7 +145,7 @@ public class OptionsController {
                 pointerParams.y = newY;
                 windowManager.updateViewLayout(pointer, pointerParams);
             }
-            return checkIfWithinThresholdOfAnIcon();
+            return checkIfAndReturnHitIcon();
         }
         return null;
     }
@@ -188,7 +188,7 @@ public class OptionsController {
         }
     }
 
-    private Icon checkIfWithinThresholdOfAnIcon() {
+    private Icon checkIfAndReturnHitIcon() {
         Point myPos = getPointerCenter();
         for (Icon icon : currentSet.getIcons()) {
             View view = currentSet.getView(icon);
@@ -300,6 +300,11 @@ public class OptionsController {
 
     public void changePointerImage(int resource) {
         pointer.setImageResource(resource);
+    }
+
+    public void resetScreen() {
+        resetPointerToCenter();
+        showCurrentSet();
     }
 
     enum IconSet {

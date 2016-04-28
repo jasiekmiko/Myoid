@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.media.session.MediaController;
 import android.media.session.MediaSessionManager;
 import android.media.session.PlaybackState;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -34,6 +35,7 @@ public class Performer implements IPerformer {
     boolean isNotificationListenerStarted = false;
     private MyoidAccessibilityService mas = MyoidAccessibilityService.getMyoidService();
     private ComponentName nlComponentName = new ComponentName(mas, MyoidNotificationListener.class);
+    private boolean isWifiPermissionGranted = false;
 
     @Inject
     public Performer(OptionsController optionsController, OverlayPermissionsRequester overlayPermissionsRequester, MouseController mouseController) {
@@ -162,6 +164,11 @@ public class Performer implements IPerformer {
     }
 
     @Override
+    public void setAreWifiPermissionsGranted(boolean b) {
+        isWifiPermissionGranted = b;
+    }
+
+    @Override
     public void performMediaAction(Media.Action action) {
         if (mediaControllers == null) startNotificationListener();
         else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -252,10 +259,11 @@ public class Performer implements IPerformer {
 
     @Override
     public Event moveOptionsPointerBy(int x, int y) {
-        OptionsController.Icon targetIcon = optionsController.movePointerBy(x, y);
-        if (targetIcon != null) {
-            optionsController.resetPointerToCenter();
-            return performOption(targetIcon);
+        OptionsController.Icon hitIcon = optionsController.movePointerByAndChooseIconIfHit(x, y);
+        if (hitIcon != null) {
+            Event resultingEvent = performOption(hitIcon);
+            optionsController.resetScreen();
+            return resultingEvent;
         }
         return null;
     }
@@ -297,6 +305,7 @@ public class Performer implements IPerformer {
         else if (target instanceof OptionsController.QsIcon)
             switch ((OptionsController.QsIcon) target) {
                 case WIFI:
+                    checkForPermissionsAndToggleWifi();
                     break;
                 case TORCH:
                     break;
@@ -306,6 +315,15 @@ public class Performer implements IPerformer {
                     break;
             }
         return null;
+    }
+
+    private void checkForPermissionsAndToggleWifi() {
+        if (isWifiPermissionGranted) {
+            WifiManager wifiManager = (WifiManager) mas.getSystemService(Context.WIFI_SERVICE);
+            wifiManager.setWifiEnabled(!wifiManager.isWifiEnabled());
+        } else {
+            shortToast("WiFi permissions not granted");
+        }
     }
 
     private void openVoiceSearch() {

@@ -1,5 +1,6 @@
 package eu.miko.myoid;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ContentResolver;
@@ -9,6 +10,8 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -20,6 +23,7 @@ import javax.inject.Inject;
 public class StatusActivity extends Activity {
     final static int REQUEST_FINE_LOCATION = 101;
     public static final int REQUEST_DRAWING_RIGHTS = 102;
+    private static final int REQUEST_WIFI_PERMISSIONS = 103;
     private final String TAG = "StatusActivity";
     private Boolean injected = false;
     @Inject IPerformer performer;
@@ -52,7 +56,7 @@ public class StatusActivity extends Activity {
 
     private void initializeUiComponents() {
         final Activity activity = this;
-        initializeFAB(activity);
+        initializeFAB();
         initializeDrawingPermissionsButton(activity);
         initializeOptionsButton();
         initializeAccessibilityStatusText();
@@ -100,24 +104,47 @@ public class StatusActivity extends Activity {
         });
     }
 
-    private void initializeFAB(final Activity activity) {
+    private void initializeFAB() {
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ensureActivityInjected();
-                if (!isAccessibilityOn())
-                    startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
-                else if (!isNotificationListenerConnected())
-                    startNotificationsAccessSettingsScreen();
-                else if (!overlayPermissionsRequester.checkDrawingPermissions(activity))
-                    overlayPermissionsRequester.requestDrawingPermissions(activity);
-                else
-                    myoChooserLauncher.chooseMyo(activity);
-
+                checkAllPermissionsAndLaunchMyoChooser();
             }
         });
     }
+
+    private void checkAllPermissionsAndLaunchMyoChooser() {
+        ensureActivityInjected();
+        if (!isAccessibilityOn())
+            startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
+        else if (!isNotificationListenerConnected())
+            startNotificationsAccessSettingsScreen();
+        else if (!overlayPermissionsRequester.checkDrawingPermissions(this))
+            overlayPermissionsRequester.requestDrawingPermissions(this);
+        else if (!WifiPermissionsGranted())
+            requestWifiPermissions();
+        else
+            myoChooserLauncher.checkForLocationPermissionAndLaunchChooser(this);
+    }
+
+    private boolean WifiPermissionsGranted() {
+        int changeStatePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.CHANGE_WIFI_STATE);
+        int accessStatePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_WIFI_STATE);
+        if (changeStatePermission == PackageManager.PERMISSION_GRANTED
+                && accessStatePermission == PackageManager.PERMISSION_GRANTED) {
+            performer.setAreWifiPermissionsGranted(true);
+            return true;
+        }
+        return false;
+    }
+
+    private void requestWifiPermissions() {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.CHANGE_WIFI_STATE, Manifest.permission.ACCESS_WIFI_STATE},
+                    StatusActivity.REQUEST_WIFI_PERMISSIONS);
+    }
+
 
     private boolean isNotificationListenerConnected() {
         ContentResolver contentResolver = getContentResolver();
@@ -201,19 +228,30 @@ public class StatusActivity extends Activity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
             case REQUEST_FINE_LOCATION: {
-                if (isPermissionGranted(grantResults)) {
-                    MyoChooserLauncher.startMyoChooser(this);
+                if (arePermissionsGranted(grantResults)) {
+                    Log.d(TAG, "Location permission granted.");
+                    checkAllPermissionsAndLaunchMyoChooser();
                 } else {
                     Log.i(TAG, "Location permission denied.");
                 }
                 break;
             }
             case REQUEST_DRAWING_RIGHTS: {
-                if (isPermissionGranted(grantResults))
+                if (arePermissionsGranted(grantResults)){
                     drawingOverlaysGranted();
+                    checkAllPermissionsAndLaunchMyoChooser();
+                }
                 else
                     drawingOverlaysDenied();
                 break;
+            }
+            case REQUEST_WIFI_PERMISSIONS: {
+                if (arePermissionsGranted(grantResults)){
+                    Log.d(TAG, "Wifi permissions granted.");
+                    checkAllPermissionsAndLaunchMyoChooser();
+                }
+                else
+                    Log.d(TAG, "Wifi permissions not granted.");
             }
         }
     }
@@ -223,8 +261,10 @@ public class StatusActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
             case REQUEST_DRAWING_RIGHTS: {
-                if (Settings.canDrawOverlays(MyoidAccessibilityService.getMyoidService()))
+                if (Settings.canDrawOverlays(MyoidAccessibilityService.getMyoidService())){
                     drawingOverlaysGranted();
+                    checkAllPermissionsAndLaunchMyoChooser();
+                }
                 else
                     drawingOverlaysDenied();
                 break;
@@ -243,8 +283,13 @@ public class StatusActivity extends Activity {
     }
 
 
-    private boolean isPermissionGranted(@NonNull int[] grantResults) {
-        return grantResults.length > 0
-                && grantResults[0] == PackageManager.PERMISSION_GRANTED;
+    private boolean arePermissionsGranted(@NonNull int[] grantResults) {
+        if (grantResults.length == 0) {
+            Log.w(TAG, "Empty grantResults array");
+            return false;
+        }
+        for (int grantResult : grantResults)
+            if (grantResult == PackageManager.PERMISSION_DENIED) return false;
+        return true;
     }
 }
