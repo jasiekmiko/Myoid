@@ -1,6 +1,5 @@
 package eu.miko.myoid;
 
-import android.Manifest;
 import android.Manifest.permission;
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -21,6 +20,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.thalmic.myo.scanner.ScanActivity;
+
 import javax.inject.Inject;
 
 public class StatusActivity extends Activity {
@@ -33,7 +34,7 @@ public class StatusActivity extends Activity {
     private Boolean injected = false;
     @Inject IPerformer performer;
     @Inject OverlayPermissionsRequester overlayPermissionsRequester;
-    @Inject MyoChooserLauncher myoChooserLauncher;
+    @Inject IMyoHubManager myoHubManager;
     private Button drawingOverlaysPermissionButton;
     private TextView accessibilityStatusText;
     private TextView mediaPermissionStatus;
@@ -133,8 +134,20 @@ public class StatusActivity extends Activity {
             requestPermission(new String[] {permission.FLASHLIGHT}, REQUEST_FLASHLIGHT_PERMISSIONS);
         else if (!isWriteSettingsPermissionGranted())
             requestWriteSettingsPermission();
+        else if(!isPermissionGranted(permission.ACCESS_FINE_LOCATION))
+            requestPermission(new String[]{permission.ACCESS_FINE_LOCATION}, REQUEST_FINE_LOCATION);
         else
-            myoChooserLauncher.checkForLocationPermissionAndLaunchChooser(this);
+            checkHubStartedAndLaunchMyoChooser();
+    }
+
+    private void checkHubStartedAndLaunchMyoChooser() {
+        if (myoHubManager.getIfHubInitialized()) {
+            Intent intent = new Intent(this, ScanActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        } else {
+            Log.e(TAG, "Hub not initialized.");
+        }
     }
 
     private boolean isWriteSettingsPermissionGranted() {
