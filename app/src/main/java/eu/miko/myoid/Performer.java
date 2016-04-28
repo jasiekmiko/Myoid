@@ -298,7 +298,7 @@ public class Performer implements IPerformer {
     }
 
     private void openVoiceSearch() {
-        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        Intent intent = new Intent(RecognizerIntent.ACTION_VOICE_SEARCH_HANDS_FREE);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         mas.startActivity(intent);
     }
