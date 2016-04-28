@@ -15,6 +15,12 @@ public class Media extends Mode {
     }
 
     @Override
+    public void onEntry() {
+        performer.unlockMyoTimed();
+        Options.mouseOrMedia = State.MEDIA;
+    }
+
+    @Override
     public Event resolvePose(Pose pose) {
         Event poseResult = null;
         switch (pose) {
@@ -24,12 +30,16 @@ public class Media extends Mode {
                 poseResult = Event.FIST;
                 break;
             case WAVE_IN:
+                performer.performMediaAction(Action.NEXT);
                 break;
             case WAVE_OUT:
+                performer.performMediaAction(Action.PREV);
                 break;
             case FINGERS_SPREAD:
+                performer.performMediaAction(Action.PLAY_PAUSE);//TODO: Temporary, in the end should happen only when options are not entered.
                 poseResult = Event.SPREAD;
             case DOUBLE_TAP:
+                performer.lockMyo();
                 break;
             case UNKNOWN:
                 break;
@@ -53,7 +63,18 @@ public class Media extends Mode {
     }
 
     @Override
-    public void resolveUnlock() {
+    public void onExit() {
+        performer.unlockMyoHold();
+    }
 
+    @Override
+    public void resolveUnlock() {
+        performer.unlockMyoTimed();
+    }
+
+    public enum Action {
+        NEXT,
+        PREV,
+        PLAY_PAUSE
     }
 }

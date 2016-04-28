@@ -11,6 +11,8 @@ import javax.inject.Singleton;
 
 @Singleton
 public class Options extends Mode {
+    static public State mouseOrMedia = State.MOUSE;
+
     @Inject
     public Options(Performer performer) {
         super(performer);
@@ -25,6 +27,7 @@ public class Options extends Mode {
     @Override
     public Event resolvePose(Pose pose) {
         Event event = null;
+        performer.changePointerImage(pose);
         switch (pose) {
             case FIST:
                 event = Event.FIST;
@@ -33,6 +36,7 @@ public class Options extends Mode {
                 if(goBackAndCheckIfOptionsClose()) event = Event.LEFT;
                 break;
             case DOUBLE_TAP:
+                performer.hideOptions();
                 performer.lockMyo();
         }
         return event;
@@ -66,10 +70,11 @@ public class Options extends Mode {
     @Override
     public void resolveUnlock() {
         performer.unlockMyoHold();
+        performer.displayOptions();
     }
 
     @Override
     public void onExit() {
-        performer.dismissOptions();
+        performer.hideOptions();
     }
 }

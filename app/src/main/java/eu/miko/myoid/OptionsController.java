@@ -1,8 +1,15 @@
 package eu.miko.myoid;
 
+import android.content.ContentResolver;
+import android.content.Context;
+import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
+import android.media.AudioManager;
+import android.os.Build;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -12,6 +19,7 @@ import android.widget.ImageView;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -20,7 +28,6 @@ import static java.lang.Math.PI;
 import static java.lang.Math.cos;
 import static java.lang.Math.min;
 import static java.lang.Math.pow;
-import static java.lang.Math.signum;
 import static java.lang.Math.sin;
 import static java.lang.Math.sqrt;
 
@@ -38,6 +45,7 @@ public class OptionsController {
     Boolean graphicsInitialized = false;
     private final MyoidAccessibilityService mas;
     private int iconRadius;
+    private int pointerSize = 69;
 
     @Inject
     public OptionsController(WindowManager windowManager, MyoidAccessibilityService mas) {
@@ -109,10 +117,10 @@ public class OptionsController {
 
     private void initPointer() {
         pointer = new ImageView(mas);
-        pointer.setImageResource(R.mipmap.ic_launcher);
+        pointer.setImageResource(R.drawable.cursor_pan);
         pointerParams = new WindowManager.LayoutParams(
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            WindowManager.LayoutParams.WRAP_CONTENT,
+            pointerSize,
+            pointerSize,
             WindowManager.LayoutParams.TYPE_PHONE,
             WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
                 | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
@@ -143,9 +151,19 @@ public class OptionsController {
     }
 
     private boolean exitsBoundary(int newX, int newY) {
-        Point newPos = new Point(newX, newY);
+        Point newPos = getPointerCenter(newX, newY);
         double dist = distance(newPos, circleCenter);
-        return dist > circleRadius*1.5;
+        return dist > circleRadius*1.1;
+    }
+
+    private Point getPointerCenter() {
+        return getPointerCenter(pointerParams.x, pointerParams.y);
+    }
+
+    @NonNull
+    private Point getPointerCenter(int newX, int newY) {
+        int pointerRadius = pointerSize/2;
+        return new Point(newX + pointerRadius, newY + pointerRadius);
     }
 
     void showIconSet(IconSet iconSet) {
@@ -156,7 +174,10 @@ public class OptionsController {
     }
 
     private void showCurrentSet() {
-        for (View view : currentSet.getViews()) {
+        for (Map.Entry entry: currentSet.getEntries()) {
+            Icon icon = (Icon) entry.getKey();
+            ImageView view = (ImageView) entry.getValue();
+            view.setImageDrawable(getIconImage(icon));
             view.setVisibility(View.VISIBLE);
         }
     }
@@ -168,7 +189,7 @@ public class OptionsController {
     }
 
     private Icon checkIfWithinThresholdOfAnIcon() {
-        Point myPos = new Point(pointerParams.x, pointerParams.y);
+        Point myPos = getPointerCenter();
         for (Icon icon : currentSet.getIcons()) {
             View view = currentSet.getView(icon);
             Point iconPos = pointFromView(view);
@@ -181,7 +202,8 @@ public class OptionsController {
     @NonNull
     private Point pointFromView(View view) {
         WindowManager.LayoutParams lp = (WindowManager.LayoutParams) view.getLayoutParams();
-        return new Point(lp.x, lp.y);
+        int viewRadius = min(lp.width, lp.height)/2;
+        return new Point(lp.x + viewRadius, lp.y + viewRadius);
     }
 
     private double distance(Point p1, Point p2) {
@@ -190,31 +212,31 @@ public class OptionsController {
 
     void initIcons() {
         int i = 0;
-        for (MainIcon iconName : MainIcon.values()) {
-            ImageView icon = initializeIconInCircle(i, MainIcon.values().length);
-            IconSet.MAIN.addView(iconName, icon);
+        for (MainIcon icon : MainIcon.values()) {
+            ImageView iconView = initializeIconInCircle(icon, i, MainIcon.values().length);
+            IconSet.MAIN.addView(icon, iconView);
             i++;
         }
         i = 0;
-        for (NavIcon iconName : NavIcon.values()) {
-            ImageView icon = initializeIconInCircle(i-1, 4);
-            IconSet.NAV.addView(iconName, icon);
+        for (NavIcon icon : NavIcon.values()) {
+            ImageView iconView = initializeIconInCircle(icon, i-1, 4);
+            IconSet.NAV.addView(icon, iconView);
             i++;
         }
         i = 0;
-        for (QsIcon iconName : QsIcon.values()) {
-            ImageView icon = initializeIconInCircle(i, QsIcon.values().length);
-            IconSet.QS.addView(iconName, icon);
+        for (QsIcon icon : QsIcon.values()) {
+            ImageView iconView = initializeIconInCircle(icon, i, QsIcon.values().length);
+            IconSet.QS.addView(icon, iconView);
             i++;
         }
     }
 
     @NonNull
-    private ImageView initializeIconInCircle(int i, int nIcons) {
-        ImageView icon = createIconImageView();
+    private ImageView initializeIconInCircle(Icon icon, int i, int nIcons) {
+        ImageView iconView = createIconImageView(icon);
         WindowManager.LayoutParams params = createIconLayoutParams(i, nIcons);
-        windowManager.addView(icon, params);
-        return icon;
+        windowManager.addView(iconView, params);
+        return iconView;
     }
 
     @NonNull
@@ -234,11 +256,25 @@ public class OptionsController {
     }
 
     @NonNull
-    private ImageView createIconImageView() {
-        ImageView icon = new ImageView(mas);
-        icon.setImageResource(R.mipmap.ic_launcher);
-        icon.setVisibility(View.GONE);
-        return icon;
+    private ImageView createIconImageView(Icon icon) {
+        ImageView iconView = new ImageView(mas);
+        Drawable iconImage = getIconImage(icon);
+        iconView.setImageDrawable(iconImage);
+        iconView.setVisibility(View.GONE);
+        return iconView;
+    }
+
+    private Drawable getIconImage(Icon icon) {
+        Drawable iconImage;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            iconImage = mas.getResources().getDrawable(icon.getIconImage(), null);//TODO investigate themes.
+            assert iconImage != null;
+            iconImage.setTint(Color.WHITE);
+        } else {
+            //noinspection deprecation
+            iconImage = mas.getResources().getDrawable(icon.getIconImage());
+        }
+        return iconImage;
     }
 
     private Rect calculateIconPositions(int index, int nIcons) {
@@ -247,14 +283,23 @@ public class OptionsController {
         double dy = -circleRadius*cos(angle * PI);
         Point center = new Point(circleCenter);
         center.offset((int) dx, (int) dy);
-        Rect iconRect = new Rect(center.x-iconRadius, center.y-iconRadius, center.x+iconRadius, center.y+iconRadius);
-        return iconRect;
+
+        int left = center.x - iconRadius;
+        int top = center.y - iconRadius;
+        int right = center.x + iconRadius;
+        int bottom = center.y + iconRadius;
+
+        return new Rect(left, top, right, bottom);
     }
 
     public boolean goBack() {
         if (currentSet == IconSet.MAIN) return true;
         showIconSet(IconSet.MAIN);
         return false;
+    }
+
+    public void changePointerImage(int resource) {
+        pointer.setImageResource(resource);
     }
 
     enum IconSet {
@@ -283,23 +328,117 @@ public class OptionsController {
         public View getView(Icon icon) {
             return views.get(icon);
         }
+
+        public Set<Map.Entry<Icon, View>> getEntries() {
+            return views.entrySet();
+        }
+    }
+
+    interface Icon {
+        int getIconImage();
     }
 
     enum MainIcon implements Icon {
-        SEARCH,
-        MEDIA_MOUSE,
-        NAV,
-        QS
-    }
+        SEARCH(R.drawable.ic_search_24dp),
+        MEDIA_MOUSE {
+            @Override
+            public int getIconImage() {
+                if (Options.mouseOrMedia == State.MOUSE)
+                    return R.drawable.ic_headset_24dp;
+                else
+                    return R.drawable.ic_mouse_24dp;
+            }
+        },
+        NAV(R.drawable.ic_navigation_24dp),
+        QS(R.drawable.ic_settings_24dp);
+
+        private int iconImage;
+
+        MainIcon(int iconImage) {
+            this.iconImage = iconImage;
+        }
+
+        MainIcon() {
+
+        }
+
+        public int getIconImage() {
+                return iconImage;
+            }
+        }
+
+
     enum NavIcon implements Icon {
-        BACK,
-        HOME,
-        RECENT
+        BACK(R.drawable.ic_nav_back_24dp),
+        HOME(R.drawable.ic_nav_home_24dp),
+        RECENT(R.drawable.ic_nav_recent_24dp);
+
+        private int iconImage;
+
+        NavIcon(int iconImage) {
+            this.iconImage = iconImage;
+        }
+
+        public int getIconImage() {
+            return iconImage;
+        }
     }
+
     enum QsIcon implements Icon {
-        WIFI,
-        TORCH,
-        MUTE,
-        GPS
+        WIFI {
+            @Override
+            public int getIconImage() {
+                try {
+                    int wifiOn = Settings.Global.getInt(getContentResolver(), Settings.Global.WIFI_ON);
+                    if (wifiOn != 0) return R.drawable.ic_signal_wifi_4_bar_24dp;
+                    else return R.drawable.ic_signal_wifi_off_24dp;
+                } catch (Settings.SettingNotFoundException e) {
+                    e.printStackTrace();
+                }
+                return R.mipmap.ic_launcher;
+            }
+        },
+        TORCH {
+            boolean torchOn = false;
+            @Override
+            public int getIconImage() {
+                return R.drawable.ic_torch_toggle_6_24dp;
+            }
+        },
+        MUTE {
+            @Override
+            public int getIconImage() {
+                AudioManager audioManager = (AudioManager) MyoidAccessibilityService.getMyoidService().getSystemService(Context.AUDIO_SERVICE);
+                switch (audioManager.getRingerMode()) {
+                    case AudioManager.RINGER_MODE_NORMAL:
+                        return R.drawable.ic_notifications_black_24dp;
+                    case AudioManager.RINGER_MODE_SILENT:
+                        return R.drawable.ic_notifications_off_24dp;
+                    case AudioManager.RINGER_MODE_VIBRATE:
+                        return R.drawable.ic_vibration_24dp;
+                    default:
+                        return R.mipmap.ic_launcher;
+                }
+            }
+        },
+        ORIENTATION {
+            @Override
+            public int getIconImage() {
+                boolean rotationLocked = true;
+                try {
+                    int rotationLockedSetting = Settings.System.getInt(getContentResolver(), Settings.System.ACCELEROMETER_ROTATION);
+                    rotationLocked = rotationLockedSetting == 0;
+                } catch (Settings.SettingNotFoundException e) {
+                    e.printStackTrace();
+                }
+                if(rotationLocked) return R.drawable.ic_screen_lock_portrait_24dp;
+                else return R.drawable.ic_screen_rotation_24dp;
+            }
+        };
+
+        private static ContentResolver getContentResolver() {
+            Context mas = MyoidAccessibilityService.getMyoidService();
+            return mas.getContentResolver();
+        }
     }
 }

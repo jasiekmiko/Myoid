@@ -2,6 +2,7 @@ package eu.miko.myoid;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -26,6 +27,7 @@ public class StatusActivity extends Activity {
     @Inject MyoChooserLauncher myoChooserLauncher;
     private Button drawingOverlaysPermissionButton;
     private TextView accessibilityStatusText;
+    private TextView mediaPermissionStatus;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +56,22 @@ public class StatusActivity extends Activity {
         initializeDrawingPermissionsButton(activity);
         initializeOptionsButton();
         initializeAccessibilityStatusText();
+        initializeMediaPermissionsStatus();
+    }
+
+    private void initializeMediaPermissionsStatus() {
+        mediaPermissionStatus = (TextView) findViewById(R.id.mediaPermissionStatus);
+        updateMediaPermissionStatusText();
+        mediaPermissionStatus.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                updateMediaPermissionStatusText();
+            }
+        });
+    }
+
+    private void updateMediaPermissionStatusText() {
+        mediaPermissionStatus.setText(isNotificationListenerConnected() ? "Media Permission Granted." : "Media permission not granted.");
     }
 
     private void initializeAccessibilityStatusText() {
@@ -90,10 +108,26 @@ public class StatusActivity extends Activity {
                 ensureActivityInjected();
                 if (!isAccessibilityOn())
                     startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
+                else if (!isNotificationListenerConnected())
+                    startNotificationsAccessSettingsScreen();
+                else if (!overlayPermissionsRequester.checkDrawingPermissions(activity))
+                    overlayPermissionsRequester.requestDrawingPermissions(activity);
                 else
                     myoChooserLauncher.chooseMyo(activity);
+
             }
         });
+    }
+
+    private boolean isNotificationListenerConnected() {
+        ContentResolver contentResolver = getContentResolver();
+        String enabledNotificationListeners = Settings.Secure.getString(contentResolver, "enabled_notification_listeners");
+        String packageName = getPackageName();
+        return enabledNotificationListeners != null && enabledNotificationListeners.contains(packageName);
+    }
+
+    private void startNotificationsAccessSettingsScreen() {
+        startActivity(new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"));
     }
 
     private void initializeDrawingPermissionsButton(final Activity activity) {
@@ -109,9 +143,9 @@ public class StatusActivity extends Activity {
 
     private void updateDrawingOverlaysButtonText() {
         if (overlayPermissionsRequester.checkDrawingPermissions(this))
-            drawingOverlaysPermissionButton.setText("Drawing overlays permission granted!");
+            drawingOverlaysPermissionButton.setText(R.string.mediaPermissionGranted);
         else
-            drawingOverlaysPermissionButton.setText("Drawing overlays permission lacking! Click here");
+            drawingOverlaysPermissionButton.setText(R.string.mediaPermissionNotGranted);
     }
 
     private boolean isAccessibilityOn() {
@@ -160,13 +194,7 @@ public class StatusActivity extends Activity {
     }
 
     private boolean isServiceConnected() {
-        MyoidAccessibilityService mas;
-        try {
-            mas = MyoidAccessibilityService.getMyoidService();
-        } catch (Error e) {
-            return false;
-        }
-        return mas.isServiceConnected();
+        return MyoidAccessibilityService.isServiceConnected();
     }
 
     @Override
@@ -181,7 +209,7 @@ public class StatusActivity extends Activity {
                 break;
             }
             case REQUEST_DRAWING_RIGHTS: {
-                if (isPermissionGranted((grantResults)))
+                if (isPermissionGranted(grantResults))
                     drawingOverlaysGranted();
                 else
                     drawingOverlaysDenied();
