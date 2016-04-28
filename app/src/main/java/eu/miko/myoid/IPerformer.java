@@ -51,4 +51,6 @@ public interface IPerformer {
     void performMediaAction(Media.Action action);
 
     void setAreWifiPermissionsGranted(boolean b);
+
+    void setIsTorchPermissionGranted(boolean isTorchPermissionGranted);
 }

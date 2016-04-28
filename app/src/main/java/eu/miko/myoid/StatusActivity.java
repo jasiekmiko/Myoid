@@ -24,6 +24,7 @@ public class StatusActivity extends Activity {
     final static int REQUEST_FINE_LOCATION = 101;
     public static final int REQUEST_DRAWING_RIGHTS = 102;
     private static final int REQUEST_WIFI_PERMISSIONS = 103;
+    private static final int REQUEST_FLASHLIGHT_PERMISSIONS = 104;
     private final String TAG = "StatusActivity";
     private Boolean injected = false;
     @Inject IPerformer performer;
@@ -125,7 +126,26 @@ public class StatusActivity extends Activity {
         else if (!WifiPermissionsGranted())
             requestWifiPermissions();
         else
+        if (!flashlightPermissionGranted())
+            requestFlashlightPermission();
+        else
             myoChooserLauncher.checkForLocationPermissionAndLaunchChooser(this);
+    }
+
+    private void requestFlashlightPermission() {
+        ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.CHANGE_WIFI_STATE, Manifest.permission.FLASHLIGHT},
+                StatusActivity.REQUEST_FLASHLIGHT_PERMISSIONS);
+    }
+
+    private boolean flashlightPermissionGranted() {
+        int permissionGrant = ContextCompat.checkSelfPermission(this, Manifest.permission.FLASHLIGHT);
+        if (permissionGrant == PackageManager.PERMISSION_GRANTED) {
+            performer.setIsTorchPermissionGranted(true);
+            return true;
+        }
+        else
+            return false;
     }
 
     private boolean WifiPermissionsGranted() {
@@ -252,6 +272,13 @@ public class StatusActivity extends Activity {
                 }
                 else
                     Log.d(TAG, "Wifi permissions not granted.");
+            }
+            case REQUEST_FLASHLIGHT_PERMISSIONS: {
+                if (arePermissionsGranted(grantResults)) {
+                    Log.d(TAG, "Flashlight permissions granted");
+                    checkAllPermissionsAndLaunchMyoChooser();
+                } else
+                    Log.d(TAG, "Flashlight permissions denied.");
             }
         }
     }

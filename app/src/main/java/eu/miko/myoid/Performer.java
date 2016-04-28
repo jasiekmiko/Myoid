@@ -5,6 +5,9 @@ import android.annotation.TargetApi;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraCharacteristics;
+import android.hardware.camera2.CameraManager;
 import android.media.session.MediaController;
 import android.media.session.MediaSessionManager;
 import android.media.session.PlaybackState;
@@ -36,6 +39,7 @@ public class Performer implements IPerformer {
     private MyoidAccessibilityService mas = MyoidAccessibilityService.getMyoidService();
     private ComponentName nlComponentName = new ComponentName(mas, MyoidNotificationListener.class);
     private boolean isWifiPermissionGranted = false;
+    private boolean isTorchPermissionGranted;
 
     @Inject
     public Performer(OptionsController optionsController, OverlayPermissionsRequester overlayPermissionsRequester, MouseController mouseController) {
@@ -175,7 +179,7 @@ public class Performer implements IPerformer {
             updateMediaControllers();
             for (MediaController mc : mediaControllers) {
                 MediaController.TransportControls transportControls = mc.getTransportControls();
-                switch(action){
+                switch (action) {
                     case NEXT:
                         transportControls.skipToNext();
                         break;
@@ -301,13 +305,13 @@ public class Performer implements IPerformer {
                     break;
             }
             return Event.OPTION_SELECTED;
-        }
-        else if (target instanceof OptionsController.QsIcon)
+        } else if (target instanceof OptionsController.QsIcon)
             switch ((OptionsController.QsIcon) target) {
                 case WIFI:
                     checkForPermissionsAndToggleWifi();
                     break;
                 case TORCH:
+                    checkSystemVersionAndPermissionsAndToggleTorch();
                     break;
                 case MUTE:
                     break;
@@ -315,6 +319,37 @@ public class Performer implements IPerformer {
                     break;
             }
         return null;
+    }
+
+    private void checkSystemVersionAndPermissionsAndToggleTorch() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            checkPermissionsAndToggleTorch();
+        } else {
+            String message = "Torch not available for devices with this system version (below M).";
+            shortToast(message);
+            Log.d(TAG, message);
+        }
+        
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    private void checkPermissionsAndToggleTorch() {
+        if (isTorchPermissionGranted) {
+            try {
+                CameraManager cameraManager = (CameraManager) mas.getSystemService(Context.CAMERA_SERVICE);
+                String[] cameras = cameraManager.getCameraIdList();
+                for (String camera : cameras) {
+                    CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(camera);
+                    boolean flashlightPresent = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
+                    if (flashlightPresent) {
+                        cameraManager.setTorchMode(camera, !Options.torchOn);
+                        Options.torchOn = !Options.torchOn;
+                    }
+                }
+            } catch (CameraAccessException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private void checkForPermissionsAndToggleWifi() {
@@ -330,6 +365,11 @@ public class Performer implements IPerformer {
         Intent intent = new Intent(RecognizerIntent.ACTION_VOICE_SEARCH_HANDS_FREE);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         mas.startActivity(intent);
+    }
+
+    @Override
+    public void setIsTorchPermissionGranted(boolean isTorchPermissionGranted) {
+        this.isTorchPermissionGranted = isTorchPermissionGranted;
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)

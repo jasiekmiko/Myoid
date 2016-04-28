@@ -10,6 +10,7 @@ import javax.inject.Singleton;
 @Singleton
 public class Options extends Mode {
     static public State mouseOrMedia = State.MOUSE;
+    public static boolean torchOn = false;
 
     @Inject
     public Options(Performer performer) {

@@ -350,10 +350,7 @@ public class OptionsController {
         MEDIA_MOUSE {
             @Override
             public int getIconImage() {
-                if (Options.mouseOrMedia == State.MOUSE)
-                    return R.drawable.ic_headset_24dp;
-                else
-                    return R.drawable.ic_mouse_24dp;
+                return Options.mouseOrMedia == State.MOUSE ? R.drawable.ic_headset_24dp : R.drawable.ic_mouse_24dp;
             }
         };
 
@@ -395,8 +392,7 @@ public class OptionsController {
             public int getIconImage() {
                 try {
                     int wifiOn = Settings.Global.getInt(getContentResolver(), Settings.Global.WIFI_ON);
-                    if (wifiOn != 0) return R.drawable.ic_signal_wifi_4_bar_24dp;
-                    else return R.drawable.ic_signal_wifi_off_24dp;
+                    return wifiOn != 0 ? R.drawable.ic_signal_wifi_4_bar_24dp : R.drawable.ic_signal_wifi_off_24dp;
                 } catch (Settings.SettingNotFoundException e) {
                     e.printStackTrace();
                 }
@@ -404,10 +400,9 @@ public class OptionsController {
             }
         },
         TORCH {
-            boolean torchOn = false;
             @Override
             public int getIconImage() {
-                return R.drawable.ic_torch_toggle_6_24dp;
+                    return Options.torchOn ? R.drawable.ic_torch_on_24dp : R.drawable.ic_torch_off_24dp;
             }
         },
         MUTE {
@@ -436,8 +431,7 @@ public class OptionsController {
                 } catch (Settings.SettingNotFoundException e) {
                     e.printStackTrace();
                 }
-                if(rotationLocked) return R.drawable.ic_screen_lock_portrait_24dp;
-                else return R.drawable.ic_screen_rotation_24dp;
+                return rotationLocked ? R.drawable.ic_screen_lock_portrait_24dp : R.drawable.ic_screen_rotation_24dp;
             }
         };
 
