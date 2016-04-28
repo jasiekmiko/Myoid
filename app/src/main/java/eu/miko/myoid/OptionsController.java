@@ -219,7 +219,7 @@ public class OptionsController {
         }
         i = 0;
         for (NavIcon icon : NavIcon.values()) {
-            ImageView iconView = initializeIconInCircle(icon, i-1, 4);
+            ImageView iconView = initializeIconInCircle(icon, i+1, 4);
             IconSet.NAV.addView(icon, iconView);
             i++;
         }
@@ -340,6 +340,8 @@ public class OptionsController {
 
     enum MainIcon implements Icon {
         SEARCH(R.drawable.ic_search_24dp),
+        QS(R.drawable.ic_settings_24dp),
+        NAV(R.drawable.ic_navigation_24dp),
         MEDIA_MOUSE {
             @Override
             public int getIconImage() {
@@ -348,9 +350,7 @@ public class OptionsController {
                 else
                     return R.drawable.ic_mouse_24dp;
             }
-        },
-        NAV(R.drawable.ic_navigation_24dp),
-        QS(R.drawable.ic_settings_24dp);
+        };
 
         private int iconImage;
 
@@ -369,9 +369,9 @@ public class OptionsController {
 
 
     enum NavIcon implements Icon {
-        BACK(R.drawable.ic_nav_back_24dp),
+        RECENT(R.drawable.ic_nav_recent_24dp),
         HOME(R.drawable.ic_nav_home_24dp),
-        RECENT(R.drawable.ic_nav_recent_24dp);
+        BACK(R.drawable.ic_nav_back_24dp);
 
         private int iconImage;
 
