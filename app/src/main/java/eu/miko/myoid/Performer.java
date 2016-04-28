@@ -34,20 +34,16 @@ import javax.inject.Singleton;
 public class Performer implements IPerformer {
     private static final String TAG = Performer.class.getName();
     private final OptionsController optionsController;
-    private final OverlayPermissionsRequester overlayPermissionsRequester;
     private final MouseController mouseController;
     private MediaSessionManager mediaSessionManager;
     private List<MediaController> mediaControllers = null;
     boolean isNotificationListenerStarted = false;
     private MyoidAccessibilityService mas = MyoidAccessibilityService.getMyoidService();
     private ComponentName nlComponentName = new ComponentName(mas, MyoidNotificationListener.class);
-    private boolean isWifiPermissionGranted = false;
-    private boolean isTorchPermissionGranted;
 
     @Inject
-    public Performer(OptionsController optionsController, OverlayPermissionsRequester overlayPermissionsRequester, MouseController mouseController) {
+    public Performer(OptionsController optionsController, MouseController mouseController) {
         this.optionsController = optionsController;
-        this.overlayPermissionsRequester = overlayPermissionsRequester;
         this.mouseController = mouseController;
 
         startNotificationListener();
@@ -151,7 +147,7 @@ public class Performer implements IPerformer {
 
     @Override
     public void displayCursor() {
-        if (overlayPermissionsRequester.checkDrawingPermissions(mas))
+        if (PermissionsController.checkDrawingPermissions(mas))
             mouseController.displayCursor();
         else
             mas.startStatusActivity(true);
@@ -159,7 +155,7 @@ public class Performer implements IPerformer {
 
     @Override
     public void displayOptions() {
-        if (overlayPermissionsRequester.checkDrawingPermissions(mas))
+        if (PermissionsController.checkDrawingPermissions(mas))
             optionsController.displayOptions();
         else
             mas.startStatusActivity(true);
@@ -168,11 +164,6 @@ public class Performer implements IPerformer {
     @Override
     public void hideOptions() {
         optionsController.dismissOptions();
-    }
-
-    @Override
-    public void setAreWifiPermissionsGranted(boolean b) {
-        isWifiPermissionGranted = b;
     }
 
     @Override

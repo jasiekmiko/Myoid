@@ -49,7 +49,4 @@ public interface IPerformer {
     void changePointerImage(Pose pose);
 
     void performMediaAction(Media.Action action);
-
-    void setAreWifiPermissionsGranted(boolean b);
-
 }
