@@ -19,6 +19,7 @@ import android.widget.ImageView;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -27,7 +28,6 @@ import static java.lang.Math.PI;
 import static java.lang.Math.cos;
 import static java.lang.Math.min;
 import static java.lang.Math.pow;
-import static java.lang.Math.signum;
 import static java.lang.Math.sin;
 import static java.lang.Math.sqrt;
 
@@ -174,7 +174,10 @@ public class OptionsController {
     }
 
     private void showCurrentSet() {
-        for (View view : currentSet.getViews()) {
+        for (Map.Entry entry: currentSet.getEntries()) {
+            Icon icon = (Icon) entry.getKey();
+            ImageView view = (ImageView) entry.getValue();
+            view.setImageDrawable(getIconImage(icon));
             view.setVisibility(View.VISIBLE);
         }
     }
@@ -255,6 +258,13 @@ public class OptionsController {
     @NonNull
     private ImageView createIconImageView(Icon icon) {
         ImageView iconView = new ImageView(mas);
+        Drawable iconImage = getIconImage(icon);
+        iconView.setImageDrawable(iconImage);
+        iconView.setVisibility(View.GONE);
+        return iconView;
+    }
+
+    private Drawable getIconImage(Icon icon) {
         Drawable iconImage;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             iconImage = mas.getResources().getDrawable(icon.getIconImage(), null);//TODO investigate themes.
@@ -264,9 +274,7 @@ public class OptionsController {
             //noinspection deprecation
             iconImage = mas.getResources().getDrawable(icon.getIconImage());
         }
-        iconView.setImageDrawable(iconImage);
-        iconView.setVisibility(View.GONE);
-        return iconView;
+        return iconImage;
     }
 
     private Rect calculateIconPositions(int index, int nIcons) {
@@ -275,8 +283,13 @@ public class OptionsController {
         double dy = -circleRadius*cos(angle * PI);
         Point center = new Point(circleCenter);
         center.offset((int) dx, (int) dy);
-        Rect iconRect = new Rect(center.x-iconRadius, center.y-iconRadius, center.x+iconRadius, center.y+iconRadius);
-        return iconRect;
+
+        int left = center.x - iconRadius;
+        int top = center.y - iconRadius;
+        int right = center.x + iconRadius;
+        int bottom = center.y + iconRadius;
+
+        return new Rect(left, top, right, bottom);
     }
 
     public boolean goBack() {
@@ -315,6 +328,10 @@ public class OptionsController {
         public View getView(Icon icon) {
             return views.get(icon);
         }
+
+        public Set<Map.Entry<Icon, View>> getEntries() {
+            return views.entrySet();
+        }
     }
 
     interface Icon {
@@ -323,7 +340,15 @@ public class OptionsController {
 
     enum MainIcon implements Icon {
         SEARCH(R.drawable.ic_search_24dp),
-        MEDIA_MOUSE(R.drawable.ic_mouse_24dp),
+        MEDIA_MOUSE {
+            @Override
+            public int getIconImage() {
+                if (Options.mouseOrMedia == State.MOUSE)
+                    return R.drawable.ic_headset_24dp;
+                else
+                    return R.drawable.ic_mouse_24dp;
+            }
+        },
         NAV(R.drawable.ic_navigation_24dp),
         QS(R.drawable.ic_settings_24dp);
 
@@ -331,6 +356,10 @@ public class OptionsController {
 
         MainIcon(int iconImage) {
             this.iconImage = iconImage;
+        }
+
+        MainIcon() {
+
         }
 
         public int getIconImage() {

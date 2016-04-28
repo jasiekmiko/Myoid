@@ -11,6 +11,8 @@ import javax.inject.Singleton;
 
 @Singleton
 public class Options extends Mode {
+    static public State mouseOrMedia = State.MOUSE;
+
     @Inject
     public Options(Performer performer) {
         super(performer);

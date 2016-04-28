@@ -20,6 +20,7 @@ class Mouse extends Mode {
     public void onEntry() {
         performer.changeCursorImage(Pose.REST);
         performer.displayCursor();
+        Options.mouseOrMedia = State.MOUSE;
     }
 
     @Override
