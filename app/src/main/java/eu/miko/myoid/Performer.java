@@ -133,12 +133,6 @@ public class Performer implements IPerformer {
     }
 
     @Override
-    public void initCursorAndCursorParams() {
-
-        mouseController.initCursorAndCursorParams();
-    }
-
-    @Override
     public void displayCursor() {
         if (overlayPermissionsRequester.checkDrawingPermissions(mas))
             mouseController.displayCursor();
