@@ -110,18 +110,26 @@ public class Performer implements IPerformer {
 
     @Override
     public void openNotifications() {
-        mas.performGlobalAction(AccessibilityService.GLOBAL_ACTION_NOTIFICATIONS);
+        if (mas.performGlobalAction(AccessibilityService.GLOBAL_ACTION_NOTIFICATIONS))
+            Log.d(TAG, "openNotifications performed.");
+        else
+            Log.d(TAG, "openNotifications failed.");
     }
 
     @Override
     public void openRecents() {
-        mas.performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS);
+        if (mas.performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS))
+            Log.d(TAG, "openRecents performed.");
+        else
+            Log.d(TAG, "openRecents failed.");
     }
 
     @Override
     public void goBack() {
-        mas.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
-        Log.d(TAG, "Back global action performed.");
+        if (mas.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK))
+            Log.d(TAG, "Back global action performed");
+        else
+            Log.d(TAG, "Back global action failed.");
     }
 
     @Override
@@ -129,7 +137,7 @@ public class Performer implements IPerformer {
         if (mas.performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME))
             Log.d(TAG, "Home global action performed.");
         else
-            Log.d(TAG, "Home global action attempted but failed. Connection missing.");
+            Log.d(TAG, "Home global action failed. Connection missing.");
     }
 
     @Override
@@ -272,17 +280,20 @@ public class Performer implements IPerformer {
                     optionsController.showIconSet(OptionsController.IconSet.QS);
                     break;
             }
-        else if (target instanceof OptionsController.NavIcon)
+        else if (target instanceof OptionsController.NavIcon) {
             switch ((OptionsController.NavIcon) target) {
                 case BACK:
                     goBack();
-                    return Event.OPTION_SELECTED;
+                    break;
                 case HOME:
                     goHome();
-                    return Event.OPTION_SELECTED;
+                    break;
                 case RECENT:
+                    openRecents();
                     break;
             }
+            return Event.OPTION_SELECTED;
+        }
         else if (target instanceof OptionsController.QsIcon)
             switch ((OptionsController.QsIcon) target) {
                 case WIFI:
