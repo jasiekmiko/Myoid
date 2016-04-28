@@ -405,7 +405,7 @@ public class OptionsController {
                     return Options.torchOn ? R.drawable.ic_torch_on_24dp : R.drawable.ic_torch_off_24dp;
             }
         },
-        MUTE {
+        RINGER {
             @Override
             public int getIconImage() {
                 AudioManager audioManager = (AudioManager) MyoidAccessibilityService.getMyoidService().getSystemService(Context.AUDIO_SERVICE);

@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
+import android.media.AudioManager;
 import android.media.session.MediaController;
 import android.media.session.MediaSessionManager;
 import android.media.session.PlaybackState;
@@ -315,13 +316,20 @@ public class Performer implements IPerformer {
                 case TORCH:
                     checkSystemVersionAndToggleTorch();
                     break;
-                case MUTE:
+                case RINGER:
+                    cycleRingerMode();
                     break;
                 case ORIENTATION:
                     toggleOrientation();
                     break;
             }
         return null;
+    }
+
+    private void cycleRingerMode() {
+        AudioManager audioManager = (AudioManager) mas.getSystemService(Context.AUDIO_SERVICE);
+        int currentMode = audioManager.getRingerMode();
+        audioManager.setRingerMode((currentMode + 1) % 3);
     }
 
     private void toggleOrientation() {
