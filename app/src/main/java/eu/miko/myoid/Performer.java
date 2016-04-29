@@ -99,18 +99,21 @@ public class Performer implements IPerformer {
     public void lockMyo() {
         myo.lock();
         myo.vibrate(Myo.VibrationType.SHORT);
+        shortToast("Myo locked - double tap to unlock");
     }
 
     @Override
     public void unlockMyoTimed() {
-        myo.unlock(Myo.UnlockType.HOLD);
+        myo.unlock(Myo.UnlockType.TIMED);
         myo.vibrate(Myo.VibrationType.SHORT);
+        shortToast("Myo unlocked for a moment");
     }
 
     @Override
     public void unlockMyoHold() {
         myo.unlock(Myo.UnlockType.HOLD);
         myo.vibrate(Myo.VibrationType.SHORT);
+        shortToast("Myo unlocked");
     }
 
     @Override

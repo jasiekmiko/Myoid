@@ -26,6 +26,11 @@ public class MyoListener extends AbstractDeviceListener {
     }
 
     @Override
+    public void onLock(Myo myo, long timestamp) {
+        inputResolver.resolveLock();
+    }
+
+    @Override
     public void onDisconnect(Myo myo, long timestamp) {
         performer.setMyo(null);
         inputResolver.setArm(null);
@@ -54,7 +59,6 @@ public class MyoListener extends AbstractDeviceListener {
 
     @Override
     public void onUnlock(Myo myo, long timestamp) {
-        super.onUnlock(myo, timestamp);
         inputResolver.resolveUnlock();
     }
 }

@@ -46,7 +46,13 @@ public class InputResolver {
     }
 
     public void resolveUnlock() {
+        Log.d(TAG, "Resolving unlock");
         getCurrentMode().resolveUnlock();
+    }
+
+    public void resolveLock() {
+        Log.d(TAG, "Resolving lock");
+        getCurrentMode().resolveLock();
     }
 
     public void setArm(Arm arm) {
