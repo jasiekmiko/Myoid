@@ -48,8 +48,8 @@ public class MyoListener extends AbstractDeviceListener {
     }
 
     @Override
-    public void onAccelerometerData(Myo myo, long timestamp, Vector3 accel) {
-        inputResolver.resolveAcceleration(accel);
+    public void onAccelerometerData(Myo myo, long timestamp, Vector3 acceleration) {
+        inputResolver.resolveAcceleration(acceleration);
     }
 
     @Override
