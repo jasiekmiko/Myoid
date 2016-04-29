@@ -6,15 +6,18 @@ import android.util.Log;
 import com.github.zevada.stateful.StateMachine;
 import com.github.zevada.stateful.StateMachineBuilder;
 import com.thalmic.myo.Arm;
+import com.thalmic.myo.Myo;
 import com.thalmic.myo.Pose;
 import com.thalmic.myo.Quaternion;
 import com.thalmic.myo.Vector3;
+import com.thalmic.myo.XDirection;
 
 import javax.inject.Inject;
 
 public class InputResolver {
     private static final String TAG = InputResolver.class.getName();
     private ModeFromStateMap modeFromState;
+    private Myo myo;
 
     @Inject
     public InputResolver(ModeFromStateMap modeFromState) {
@@ -31,7 +34,17 @@ public class InputResolver {
     }
 
     public void resolveOrientation(Quaternion rotation) {
-        Event resultingEvent = getCurrentMode().resolveOrientation(rotation);
+        // Calculate Euler angles (roll, pitch, and yaw) from the quaternion.
+        float roll = (float) Math.toDegrees(Quaternion.roll(rotation));
+        float pitch = (float) Math.toDegrees(Quaternion.pitch(rotation));
+        float yaw = (float) Math.toDegrees(Quaternion.yaw(rotation));
+        // Adjust roll and pitch for the orientation of the Myo on the arm.
+        if (myo.getXDirection() == XDirection.TOWARD_ELBOW) {
+            roll *= -1;
+            pitch *= -1;
+        }
+
+        Event resultingEvent = getCurrentMode().resolveOrientation(roll, pitch, yaw);
         if(resultingEvent != null) myoidStateMachine.apply(resultingEvent);
     }
 
@@ -102,6 +115,14 @@ public class InputResolver {
                 .onEnter(State.MEIDA_VOLUME, new RunnableOnEntry(State.MEIDA_VOLUME))
                 .addTransition(State.MEIDA_VOLUME, Event.RELAX, State.MEDIA)
                 .build();
+    }
+
+    public void setMyo(Myo myo) {
+        this.myo = myo;
+    }
+
+    public Myo getMyo() {
+        return myo;
     }
 
     private class RunnableOnExit implements Runnable {

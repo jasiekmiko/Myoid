@@ -1,7 +1,6 @@
 package eu.miko.myoid;
 
 import com.thalmic.myo.Pose;
-import com.thalmic.myo.Quaternion;
 import com.thalmic.myo.Vector3;
 
 import javax.inject.Inject;
@@ -51,21 +50,6 @@ public class Media extends Mode {
         }
         if (shouldLockTimerExtend) performer.unlockMyoTimed();
         return poseResult;
-    }
-
-    @Override
-    public Event resolveOrientation(Quaternion rotation) {
-        return null;
-    }
-
-    @Override
-    public Event resolveAcceleration(Vector3 acceleration) {
-        return null;
-    }
-
-    @Override
-    public Event resolveGyro(Vector3 gyro) {
-        return null;
     }
 
     @Override

@@ -52,11 +52,7 @@ class Mouse extends Mode {
     }
 
     @Override
-    public Event resolveOrientation(Quaternion rotation) {
-        //float roll = (float) Math.toDegrees(Quaternion.roll(rotation));
-        float pitch = (float) Math.toDegrees(Quaternion.pitch(rotation));
-        float yaw = (float) Math.toDegrees(Quaternion.yaw(rotation));
-
+    public Event resolveOrientation(float roll, float pitch, float yaw) {
         performer.moveCursor(xMovement(yaw), yMovement(pitch));
         return null;
     }

@@ -3,7 +3,6 @@ package eu.miko.myoid;
 import android.util.Log;
 
 import com.thalmic.myo.Pose;
-import com.thalmic.myo.Quaternion;
 import com.thalmic.myo.Vector3;
 
 import javax.inject.Inject;
@@ -56,7 +55,7 @@ public class ModeFromStateMap {
                     }
 
                     @Override
-                    public Event resolveOrientation(Quaternion rotation) {
+                    public Event resolveOrientation(float roll, float pitch, float yaw) {
                         Log.w(TAG, "resolveOrientation called on an unimplemented Event");
                         return null;
                     }

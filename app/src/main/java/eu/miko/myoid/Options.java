@@ -46,22 +46,8 @@ public class Options extends Mode {
     }
 
     @Override
-    public Event resolveOrientation(Quaternion rotation) {
-        //float roll = (float) Math.toDegrees(Quaternion.roll(rotation));
-        float pitch = (float) Math.toDegrees(Quaternion.pitch(rotation));
-        float yaw = (float) Math.toDegrees(Quaternion.yaw(rotation));
-
+    public Event resolveOrientation(float roll, float pitch, float yaw) {
         return performer.moveOptionsPointerBy(xMovement(yaw), yMovement(pitch));
-    }
-
-    @Override
-    public Event resolveAcceleration(Vector3 acceleration) {
-        return null;
-    }
-
-    @Override
-    public Event resolveGyro(Vector3 gyro) {
-        return null;
     }
 
     @Override

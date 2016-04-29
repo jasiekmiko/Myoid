@@ -21,8 +21,8 @@ public class MediaVolume extends Mode {
     }
 
     @Override
-    public Event resolveOrientation(Quaternion rotation) {
-        //float roll = (float) Math.toDegrees(Quaternion.roll(rotation));
+    public Event resolveOrientation(float roll, float pitch, float yaw) {
+
         return null;
     }
 

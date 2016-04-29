@@ -18,7 +18,7 @@ public abstract class Mode {
         return null;
     }
 
-    public Event resolveOrientation(Quaternion rotation) {
+    public Event resolveOrientation(float roll, float pitch, float yaw) {
         return null;
     }
 
