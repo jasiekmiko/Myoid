@@ -8,8 +8,19 @@ import static java.lang.Math.abs;
 
 public abstract class Mode {
     protected IPerformer performer;
-    abstract public Event resolvePose(Pose pose);
-    abstract public Event resolveOrientation(Quaternion rotation);
+    public Mode(Performer performer) {
+        this.performer = performer;
+    }
+
+    public void onEntry() {    }
+
+    public Event resolvePose(Pose pose){
+        return null;
+    }
+
+    public Event resolveOrientation(Quaternion rotation) {
+        return null;
+    }
 
     public int xMovement(float deg) {
         float degCorrected = deg;
@@ -24,15 +35,19 @@ public abstract class Mode {
         return (int)(-deg/3);
     }
 
-    abstract public Event resolveAcceleration(Vector3 acceleration);
-    abstract public Event resolveGyro(Vector3 gyro);
-    abstract public void resolveUnlock();
-
-    public Mode(Performer performer) {
-        this.performer = performer;
+    public Event resolveAcceleration(Vector3 acceleration) {
+        return null;
     }
 
-    public void onEntry() {    }
+    public Event resolveGyro(Vector3 gyro) {
+        return null;
+    }
+
+    public void resolveUnlock() {
+    }
+
+    public void resolveLock() {
+    }
 
     public void onExit() {    }
 }

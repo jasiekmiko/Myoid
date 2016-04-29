@@ -41,22 +41,9 @@ public class OptionsDoorway extends Mode {
     }
 
     @Override
-    public Event resolveOrientation(Quaternion rotation) {
-        return null;
-    }
-
-    @Override
     public Event resolveAcceleration(Vector3 acceleration) {
         if (acceleration.z() > .1) return Event.Z_AXIS;
         return null;
     }
-
-    @Override
-    public Event resolveGyro(Vector3 gyro) {
-        return null;
-    }
-
-    @Override
-    public void resolveUnlock() {}
 
 }

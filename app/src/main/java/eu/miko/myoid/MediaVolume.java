@@ -35,9 +35,4 @@ public class MediaVolume extends Mode {
     public Event resolveGyro(Vector3 gyro) {
         return null;
     }
-
-    @Override
-    public void resolveUnlock() {
-
-    }
 }
