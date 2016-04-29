@@ -23,17 +23,21 @@ public class Media extends Mode {
     @Override
     public Event resolvePose(Pose pose) {
         Event poseResult = null;
+        boolean shouldLockTimerExtend = false;
         switch (pose) {
             case REST:
                 break;
             case FIST:
                 poseResult = Event.FIST;
+                shouldLockTimerExtend = true;
                 break;
             case WAVE_IN:
                 performer.performMediaAction(Action.NEXT);
+                shouldLockTimerExtend = true;
                 break;
             case WAVE_OUT:
                 performer.performMediaAction(Action.PREV);
+                shouldLockTimerExtend = true;
                 break;
             case FINGERS_SPREAD:
                 performer.performMediaAction(Action.PLAY_PAUSE);//TODO: Temporary, in the end should happen only when options are not entered.
@@ -45,6 +49,7 @@ public class Media extends Mode {
             case UNKNOWN:
                 break;
         }
+        if (shouldLockTimerExtend) performer.unlockMyoTimed();
         return poseResult;
     }
 
