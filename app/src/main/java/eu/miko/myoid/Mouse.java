@@ -7,8 +7,6 @@ import com.thalmic.myo.Vector3;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import static java.lang.Math.abs;
-
 @Singleton
 class Mouse extends Mode {
     @Inject
@@ -20,6 +18,7 @@ class Mouse extends Mode {
     public void onEntry() {
         performer.changeCursorImage(Pose.REST);
         performer.displayCursor();
+        Options.mouseOrMedia = State.MOUSE;
     }
 
     @Override

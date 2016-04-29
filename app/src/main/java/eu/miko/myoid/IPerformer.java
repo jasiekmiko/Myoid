@@ -26,8 +26,6 @@ public interface IPerformer {
 
     void goHome();
 
-    void initCursorAndCursorParams();
-
     void displayCursor();
 
     void displayOptions();

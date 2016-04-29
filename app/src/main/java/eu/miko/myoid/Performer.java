@@ -3,14 +3,21 @@ package eu.miko.myoid;
 import android.accessibilityservice.AccessibilityService;
 import android.annotation.TargetApi;
 import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraCharacteristics;
+import android.hardware.camera2.CameraManager;
+import android.media.AudioManager;
 import android.media.session.MediaController;
 import android.media.session.MediaSessionManager;
 import android.media.session.PlaybackState;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.Settings;
 import android.speech.RecognizerIntent;
 import android.util.Log;
 import android.widget.Toast;
@@ -27,7 +34,6 @@ import javax.inject.Singleton;
 public class Performer implements IPerformer {
     private static final String TAG = Performer.class.getName();
     private final OptionsController optionsController;
-    private final OverlayPermissionsRequester overlayPermissionsRequester;
     private final MouseController mouseController;
     private MediaSessionManager mediaSessionManager;
     private List<MediaController> mediaControllers = null;
@@ -36,9 +42,8 @@ public class Performer implements IPerformer {
     private ComponentName nlComponentName = new ComponentName(mas, MyoidNotificationListener.class);
 
     @Inject
-    public Performer(OptionsController optionsController, OverlayPermissionsRequester overlayPermissionsRequester, MouseController mouseController) {
+    public Performer(OptionsController optionsController, MouseController mouseController) {
         this.optionsController = optionsController;
-        this.overlayPermissionsRequester = overlayPermissionsRequester;
         this.mouseController = mouseController;
 
         startNotificationListener();
@@ -110,18 +115,26 @@ public class Performer implements IPerformer {
 
     @Override
     public void openNotifications() {
-        mas.performGlobalAction(AccessibilityService.GLOBAL_ACTION_NOTIFICATIONS);
+        if (mas.performGlobalAction(AccessibilityService.GLOBAL_ACTION_NOTIFICATIONS))
+            Log.d(TAG, "openNotifications performed.");
+        else
+            Log.d(TAG, "openNotifications failed.");
     }
 
     @Override
     public void openRecents() {
-        mas.performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS);
+        if (mas.performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS))
+            Log.d(TAG, "openRecents performed.");
+        else
+            Log.d(TAG, "openRecents failed.");
     }
 
     @Override
     public void goBack() {
-        mas.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
-        Log.d(TAG, "Back global action performed.");
+        if (mas.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK))
+            Log.d(TAG, "Back global action performed");
+        else
+            Log.d(TAG, "Back global action failed.");
     }
 
     @Override
@@ -129,18 +142,12 @@ public class Performer implements IPerformer {
         if (mas.performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME))
             Log.d(TAG, "Home global action performed.");
         else
-            Log.d(TAG, "Home global action attempted but failed. Connection missing.");
-    }
-
-    @Override
-    public void initCursorAndCursorParams() {
-
-        mouseController.initCursorAndCursorParams();
+            Log.d(TAG, "Home global action failed. Connection missing.");
     }
 
     @Override
     public void displayCursor() {
-        if (overlayPermissionsRequester.checkDrawingPermissions(mas))
+        if (PermissionsController.checkDrawingPermissions(mas))
             mouseController.displayCursor();
         else
             mas.startStatusActivity(true);
@@ -148,7 +155,7 @@ public class Performer implements IPerformer {
 
     @Override
     public void displayOptions() {
-        if (overlayPermissionsRequester.checkDrawingPermissions(mas))
+        if (PermissionsController.checkDrawingPermissions(mas))
             optionsController.displayOptions();
         else
             mas.startStatusActivity(true);
@@ -166,7 +173,7 @@ public class Performer implements IPerformer {
             updateMediaControllers();
             for (MediaController mc : mediaControllers) {
                 MediaController.TransportControls transportControls = mc.getTransportControls();
-                switch(action){
+                switch (action) {
                     case NEXT:
                         transportControls.skipToNext();
                         break;
@@ -250,10 +257,11 @@ public class Performer implements IPerformer {
 
     @Override
     public Event moveOptionsPointerBy(int x, int y) {
-        Icon targetIcon = optionsController.movePointerBy(x, y);
-        if (targetIcon != null) {
-            optionsController.resetPointerToCenter();
-            return performOption(targetIcon);
+        OptionsController.Icon hitIcon = optionsController.movePointerByAndChooseIconIfHit(x, y);
+        if (hitIcon != null) {
+            Event resultingEvent = performOption(hitIcon);
+            optionsController.resetScreen();
+            return resultingEvent;
         }
         return null;
     }
@@ -263,7 +271,7 @@ public class Performer implements IPerformer {
         return optionsController.goBack();
     }
 
-    private Event performOption(Icon target) {
+    private Event performOption(OptionsController.Icon target) {
         if (target instanceof OptionsController.MainIcon)
             switch ((OptionsController.MainIcon) target) {
                 case SEARCH:
@@ -278,33 +286,90 @@ public class Performer implements IPerformer {
                     optionsController.showIconSet(OptionsController.IconSet.QS);
                     break;
             }
-        else if (target instanceof OptionsController.NavIcon)
+        else if (target instanceof OptionsController.NavIcon) {
             switch ((OptionsController.NavIcon) target) {
                 case BACK:
                     goBack();
-                    return Event.OPTION_SELECTED;
+                    break;
                 case HOME:
                     goHome();
-                    return Event.OPTION_SELECTED;
+                    break;
                 case RECENT:
+                    openRecents();
                     break;
             }
-        else if (target instanceof OptionsController.QsIcon)
+            return Event.OPTION_SELECTED;
+        } else if (target instanceof OptionsController.QsIcon)
             switch ((OptionsController.QsIcon) target) {
                 case WIFI:
+                    toggleWifi();
                     break;
                 case TORCH:
+                    checkSystemVersionAndToggleTorch();
                     break;
-                case MUTE:
+                case RINGER:
+                    cycleRingerMode();
                     break;
-                case GPS:
+                case ORIENTATION:
+                    toggleOrientation();
                     break;
             }
         return null;
     }
 
+    private void cycleRingerMode() {
+        AudioManager audioManager = (AudioManager) mas.getSystemService(Context.AUDIO_SERVICE);
+        int currentMode = audioManager.getRingerMode();
+        audioManager.setRingerMode((currentMode + 1) % 3);
+    }
+
+    private void toggleOrientation() {
+        try {
+            ContentResolver cr = mas.getContentResolver();
+            int currentState = Settings.System.getInt(cr, Settings.System.ACCELEROMETER_ROTATION);
+            Settings.System.putInt(cr, Settings.System.ACCELEROMETER_ROTATION, 1 - currentState);
+        } catch (Settings.SettingNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void checkSystemVersionAndToggleTorch() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            toggleTorch();
+        } else {
+            String message = "Torch not available for devices with this system version (below M).";
+            shortToast(message);
+            Log.d(TAG, message);
+        }
+
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    private void toggleTorch() {
+        try {
+            CameraManager cameraManager = (CameraManager) mas.getSystemService(Context.CAMERA_SERVICE);
+            String[] cameras = cameraManager.getCameraIdList();
+            for (String camera : cameras) {
+                CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(camera);
+                //noinspection ConstantConditions
+                boolean flashlightPresent = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
+                if (flashlightPresent) {
+                    cameraManager.setTorchMode(camera, !Options.torchOn);
+                    Options.torchOn = !Options.torchOn;
+                }
+            }
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void toggleWifi() {
+        WifiManager wifiManager = (WifiManager) mas.getSystemService(Context.WIFI_SERVICE);
+        wifiManager.setWifiEnabled(!wifiManager.isWifiEnabled());
+    }
+
     private void openVoiceSearch() {
-        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        Intent intent = new Intent(RecognizerIntent.ACTION_VOICE_SEARCH_HANDS_FREE);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         mas.startActivity(intent);
     }

@@ -17,6 +17,7 @@ public class Media extends Mode {
     @Override
     public void onEntry() {
         performer.unlockMyoTimed();
+        Options.mouseOrMedia = State.MEDIA;
     }
 
     @Override
