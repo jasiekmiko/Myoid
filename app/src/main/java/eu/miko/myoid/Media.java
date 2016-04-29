@@ -1,7 +1,6 @@
 package eu.miko.myoid;
 
 import com.thalmic.myo.Pose;
-import com.thalmic.myo.Vector3;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;

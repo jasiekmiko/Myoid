@@ -22,7 +22,6 @@ public class MyoListener extends AbstractDeviceListener {
     public void onConnect(Myo myo, long timestamp) {
         performer.setMyo(myo);
         inputResolver.setMyo(myo);
-        inputResolver.setArm(myo.getArm());
         performer.shortToast("Myo Connected");
     }
 
@@ -34,7 +33,6 @@ public class MyoListener extends AbstractDeviceListener {
     @Override
     public void onDisconnect(Myo myo, long timestamp) {
         performer.setMyo(null);
-        inputResolver.setArm(null);
         performer.shortToast("Myo Disconnected");
     }
 

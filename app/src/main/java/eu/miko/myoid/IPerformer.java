@@ -49,4 +49,8 @@ public interface IPerformer {
     void changePointerImage(Pose pose);
 
     void performMediaAction(Media.Action action);
+
+    void adjustMediaVolume(float roll);
+
+    void setVolumeAdjustStart();
 }

@@ -5,7 +5,6 @@ import android.util.Log;
 
 import com.github.zevada.stateful.StateMachine;
 import com.github.zevada.stateful.StateMachineBuilder;
-import com.thalmic.myo.Arm;
 import com.thalmic.myo.Myo;
 import com.thalmic.myo.Pose;
 import com.thalmic.myo.Quaternion;
@@ -25,7 +24,6 @@ public class InputResolver {
     }
 
     private StateMachine<State, Event> myoidStateMachine = createMyoidStateMachine();
-    private Arm arm;
 
     public void resolvePose(Pose pose) {
         Log.d(TAG, "Pose detected: " + pose);
@@ -36,8 +34,8 @@ public class InputResolver {
     public void resolveOrientation(Quaternion rotation) {
         // Calculate Euler angles (roll, pitch, and yaw) from the quaternion.
         float roll = (float) Math.toDegrees(Quaternion.roll(rotation));
-        float pitch = (float) Math.toDegrees(Quaternion.pitch(rotation));
-        float yaw = (float) Math.toDegrees(Quaternion.yaw(rotation));
+        float pitch = - (float) Math.toDegrees(Quaternion.pitch(rotation));
+        float yaw = - (float) Math.toDegrees(Quaternion.yaw(rotation));
         // Adjust roll and pitch for the orientation of the Myo on the arm.
         if (myo.getXDirection() == XDirection.TOWARD_ELBOW) {
             roll *= -1;
@@ -66,10 +64,6 @@ public class InputResolver {
     public void resolveLock() {
         Log.d(TAG, "Resolving lock");
         getCurrentMode().resolveLock();
-    }
-
-    public void setArm(Arm arm) {
-        this.arm = arm;
     }
 
     private Mode getCurrentMode() {

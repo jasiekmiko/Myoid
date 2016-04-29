@@ -30,6 +30,9 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+
 @Singleton
 public class Performer implements IPerformer {
     private static final String TAG = Performer.class.getName();
@@ -40,6 +43,7 @@ public class Performer implements IPerformer {
     boolean isNotificationListenerStarted = false;
     private MyoidAccessibilityService mas = MyoidAccessibilityService.getMyoidService();
     private ComponentName nlComponentName = new ComponentName(mas, MyoidNotificationListener.class);
+    private int volumeAdjustBase;
 
     @Inject
     public Performer(OptionsController optionsController, MouseController mouseController) {
@@ -167,6 +171,24 @@ public class Performer implements IPerformer {
     @Override
     public void hideOptions() {
         optionsController.dismissOptions();
+    }
+
+    @Override
+    public void setVolumeAdjustStart() {
+        AudioManager audioManager = (AudioManager) mas.getSystemService(Context.AUDIO_SERVICE);
+        volumeAdjustBase = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+    }
+
+    @Override
+    public void adjustMediaVolume(float degree) {
+        AudioManager audioManager = (AudioManager) mas.getSystemService(Context.AUDIO_SERVICE);
+
+        float clippedDegree = min(max(-90, degree), 90);
+        int change = (int) (clippedDegree / 5);
+        int max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        int newVolume = volumeAdjustBase + change;
+        int newVolumeClipped = max(0, min(newVolume, max));
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newVolumeClipped, AudioManager.FLAG_SHOW_UI);
     }
 
     @Override
