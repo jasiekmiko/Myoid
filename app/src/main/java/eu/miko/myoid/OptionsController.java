@@ -67,8 +67,7 @@ public class OptionsController {
             graphicsInitialized = true;
         }
         optionsWindow.setVisibility(View.VISIBLE);
-        currentSet = IconSet.MAIN;
-        showCurrentSet();
+        showIconSet(IconSet.MAIN);
         pointer.setVisibility(View.VISIBLE);
     }
 
