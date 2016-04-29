@@ -87,6 +87,7 @@ public class InputResolver {
                 .onEnter(State.MEDIA, new RunnableOnEntry(State.MEDIA))
                 .addTransition(State.MEDIA, Event.SPREAD, State.OPTIONS_DOORWAY_FROM_MEDIA)
                 .addTransition(State.MEDIA, Event.FIST, State.MEIDA_VOLUME)
+                .onExit(State.MEDIA, new RunnableOnExit(State.MEDIA))
                 //OPTIONS_DOORWAY_FROM_MEDIA
                 .onEnter(State.OPTIONS_DOORWAY_FROM_MEDIA, new RunnableOnEntry(State.OPTIONS_DOORWAY_FROM_MEDIA))
                 .addTransition(State.OPTIONS_DOORWAY_FROM_MEDIA, Event.Z_AXIS, State.OPTIONS_FROM_MEDIA)
@@ -96,7 +97,6 @@ public class InputResolver {
                 .addTransition(State.OPTIONS_FROM_MEDIA, Event.LEFT, State.MEDIA)
                 .addTransition(State.OPTIONS_FROM_MEDIA, Event.OPTION_SELECTED, State.MEDIA)
                 .addTransition(State.OPTIONS_FROM_MEDIA, Event.SWITCH_MODE, State.MOUSE)
-                .onExit(State.OPTIONS_FROM_MEDIA, new RunnableOnExit(State.OPTIONS_FROM_MEDIA))
                 //MEDIA_VOLUME
                 .onEnter(State.MEIDA_VOLUME, new RunnableOnEntry(State.MEIDA_VOLUME))
                 .addTransition(State.MEIDA_VOLUME, Event.RELAX, State.MEDIA)
