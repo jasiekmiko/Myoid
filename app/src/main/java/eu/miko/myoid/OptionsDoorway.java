@@ -1,7 +1,6 @@
 package eu.miko.myoid;
 
 import com.thalmic.myo.Pose;
-import com.thalmic.myo.Quaternion;
 import com.thalmic.myo.Vector3;
 
 import javax.inject.Inject;
@@ -41,22 +40,10 @@ public class OptionsDoorway extends Mode {
     }
 
     @Override
-    public Event resolveOrientation(Quaternion rotation) {
+    public Event resolveAcceleration(Vector3 acceleration, boolean xDirectionTowardsElbow) {
+        float threshold = xDirectionTowardsElbow ? 0.3f : -0.3f;
+        if (acceleration.x() > threshold) return Event.X_AXIS_PULL;
         return null;
     }
-
-    @Override
-    public Event resolveAcceleration(Vector3 acceleration) {
-        if (acceleration.z() > .1) return Event.Z_AXIS;
-        return null;
-    }
-
-    @Override
-    public Event resolveGyro(Vector3 gyro) {
-        return null;
-    }
-
-    @Override
-    public void resolveUnlock() {}
 
 }

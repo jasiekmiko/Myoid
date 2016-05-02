@@ -8,7 +8,7 @@ public enum Event {
     DOWN,
     SPREAD,
     RELAX,
-    Z_AXIS,
+    X_AXIS_PULL,
     OPTION_SELECTED,
     SWITCH_MODE,
 }

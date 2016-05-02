@@ -30,6 +30,9 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+
 @Singleton
 public class Performer implements IPerformer {
     private static final String TAG = Performer.class.getName();
@@ -40,11 +43,14 @@ public class Performer implements IPerformer {
     boolean isNotificationListenerStarted = false;
     private MyoidAccessibilityService mas = MyoidAccessibilityService.getMyoidService();
     private ComponentName nlComponentName = new ComponentName(mas, MyoidNotificationListener.class);
+    private int volumeAdjustBase;
+    private MediaStatusController mediaStatusController;
 
     @Inject
-    public Performer(OptionsController optionsController, MouseController mouseController) {
+    public Performer(OptionsController optionsController, MouseController mouseController, MediaStatusController mediaStatusController) {
         this.optionsController = optionsController;
         this.mouseController = mouseController;
+        this.mediaStatusController = mediaStatusController;
 
         startNotificationListener();
     }
@@ -99,18 +105,21 @@ public class Performer implements IPerformer {
     public void lockMyo() {
         myo.lock();
         myo.vibrate(Myo.VibrationType.SHORT);
+        shortToast("Myo locked - double tap to unlock");
     }
 
     @Override
     public void unlockMyoTimed() {
-        myo.unlock(Myo.UnlockType.HOLD);
+        myo.unlock(Myo.UnlockType.TIMED);
         myo.vibrate(Myo.VibrationType.SHORT);
+        shortToast("Myo unlocked for a moment");
     }
 
     @Override
     public void unlockMyoHold() {
         myo.unlock(Myo.UnlockType.HOLD);
         myo.vibrate(Myo.VibrationType.SHORT);
+        shortToast("Myo unlocked");
     }
 
     @Override
@@ -164,6 +173,39 @@ public class Performer implements IPerformer {
     @Override
     public void hideOptions() {
         optionsController.dismissOptions();
+    }
+
+    @Override
+    public void displayMediaStatus() {
+        mediaStatusController.display();
+    }
+
+    @Override
+    public void hideMediaStatus() {
+        mediaStatusController.hide();
+    }
+
+    @Override
+    public void changeMediaStatus(Pose pose) {
+        mediaStatusController.changeImage(getPoseImage(pose));
+    }
+
+    @Override
+    public void setVolumeAdjustStart() {
+        AudioManager audioManager = (AudioManager) mas.getSystemService(Context.AUDIO_SERVICE);
+        volumeAdjustBase = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+    }
+
+    @Override
+    public void adjustMediaVolume(float degree) {
+        AudioManager audioManager = (AudioManager) mas.getSystemService(Context.AUDIO_SERVICE);
+
+        float clippedDegree = min(max(-90, degree), 90);
+        int change = (int) (clippedDegree / 5);
+        int max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        int newVolume = volumeAdjustBase + change;
+        int newVolumeClipped = max(0, min(newVolume, max));
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newVolumeClipped, AudioManager.FLAG_SHOW_UI);
     }
 
     @Override
