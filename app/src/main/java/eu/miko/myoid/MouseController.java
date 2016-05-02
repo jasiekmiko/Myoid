@@ -79,7 +79,8 @@ public class MouseController {
     public String mouseScroll(boolean down) {
         int scrollDir = down ? AccessibilityNodeInfo.ACTION_SCROLL_FORWARD : AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD;
         AccessibilityNodeInfo root = mas.getRootInActiveWindow();
-        AccessibilityNodeInfo rootUnderCursor = findChildAt(root, cursorParams.x, cursorParams.y);
+        Point cursorCenter = getCursorCenter();
+        AccessibilityNodeInfo rootUnderCursor = findChildAt(root, cursorCenter.x, cursorCenter.y);
         if (rootUnderCursor != null) {
             AccessibilityNodeInfo scrollableView = findScrollable(rootUnderCursor);
             if (scrollableView != null)
@@ -91,7 +92,8 @@ public class MouseController {
 
     public String mouseTap() {
         AccessibilityNodeInfo root = mas.getRootInActiveWindow();
-        AccessibilityNodeInfo rootUnderCursor = findChildAt(root, cursorParams.x, cursorParams.y);
+        Point cursorCenter = getCursorCenter();
+        AccessibilityNodeInfo rootUnderCursor = findChildAt(root, cursorCenter.x, cursorCenter.y);
         if (rootUnderCursor != null) {
             AccessibilityNodeInfo clickableNode = findClickable(rootUnderCursor);
             if (clickableNode != null) {
@@ -99,6 +101,10 @@ public class MouseController {
             } else return "nothing to tap here";
         } else return "nothing here!";
         return null;
+    }
+
+    private Point getCursorCenter() {
+        return new Point(cursorParams.x + (CURSOR_SIZE/2), cursorParams.y + (CURSOR_SIZE/2));
     }
 
     private int keepOnScreenY(int y) {
@@ -143,8 +149,8 @@ public class MouseController {
         int nChildren = root.getChildCount();
         for (int i = 0; i < nChildren; i++) {
             AccessibilityNodeInfo child = root.getChild(i);
-            AccessibilityNodeInfo maybeClickable = findScrollable(child);
-            if (maybeClickable != null) return maybeClickable;
+            AccessibilityNodeInfo maybeScrollable = findScrollable(child);
+            if (maybeScrollable != null) return maybeScrollable;
         }
         return null;
     }
