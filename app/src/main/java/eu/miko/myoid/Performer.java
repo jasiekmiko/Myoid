@@ -340,7 +340,7 @@ public class Performer implements IPerformer {
                     openRecents();
                     break;
             }
-            return Event.OPTION_SELECTED;
+            return Event.MOUSE;
         } else if (target instanceof OptionsController.QsIcon)
             switch ((OptionsController.QsIcon) target) {
                 case WIFI:

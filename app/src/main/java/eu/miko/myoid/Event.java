@@ -10,5 +10,5 @@ public enum Event {
     RELAX,
     X_AXIS_PULL,
     OPTION_SELECTED,
-    SWITCH_MODE,
+    SWITCH_MODE, MOUSE,
 }

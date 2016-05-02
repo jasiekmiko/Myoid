@@ -101,6 +101,7 @@ public class InputResolver {
                 .addTransition(State.OPTIONS_FROM_MOUSE, Event.LEFT, State.MOUSE)
                 .addTransition(State.OPTIONS_FROM_MOUSE, Event.OPTION_SELECTED, State.MOUSE)
                 .addTransition(State.OPTIONS_FROM_MOUSE, Event.SWITCH_MODE, State.MEDIA)
+                .addTransition(State.OPTIONS_FROM_MOUSE, Event.MOUSE, State.MOUSE)
                 .onExit(State.OPTIONS_FROM_MOUSE, new RunnableOnExit(State.OPTIONS_FROM_MOUSE))
                 //MEDIA
                 .onEnter(State.MEDIA, new RunnableOnEntry(State.MEDIA))
@@ -116,6 +117,7 @@ public class InputResolver {
                 .addTransition(State.OPTIONS_FROM_MEDIA, Event.LEFT, State.MEDIA)
                 .addTransition(State.OPTIONS_FROM_MEDIA, Event.OPTION_SELECTED, State.MEDIA)
                 .addTransition(State.OPTIONS_FROM_MEDIA, Event.SWITCH_MODE, State.MOUSE)
+                .addTransition(State.OPTIONS_FROM_MEDIA, Event.MOUSE, State.MOUSE)
                 .onExit(State.OPTIONS_FROM_MEDIA, new RunnableOnExit(State.OPTIONS_FROM_MOUSE))
                 //MEDIA_VOLUME
                 .onEnter(State.MEIDA_VOLUME, new RunnableOnEntry(State.MEIDA_VOLUME))
