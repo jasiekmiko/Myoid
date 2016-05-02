@@ -5,16 +5,20 @@ import android.util.Log;
 
 import com.github.zevada.stateful.StateMachine;
 import com.github.zevada.stateful.StateMachineBuilder;
-import com.thalmic.myo.Arm;
+import com.thalmic.myo.Myo;
 import com.thalmic.myo.Pose;
 import com.thalmic.myo.Quaternion;
 import com.thalmic.myo.Vector3;
+import com.thalmic.myo.XDirection;
 
 import javax.inject.Inject;
 
 public class InputResolver {
     private static final String TAG = InputResolver.class.getName();
     private ModeFromStateMap modeFromState;
+    private Myo myo;
+    private boolean orientationZeroReset = true;
+    private Quaternion orientationZero;
 
     @Inject
     public InputResolver(ModeFromStateMap modeFromState) {
@@ -22,7 +26,6 @@ public class InputResolver {
     }
 
     private StateMachine<State, Event> myoidStateMachine = createMyoidStateMachine();
-    private Arm arm;
 
     public void resolvePose(Pose pose) {
         Log.d(TAG, "Pose detected: " + pose);
@@ -30,13 +33,32 @@ public class InputResolver {
         myoidStateMachine.apply(resultingEvent);
     }
 
-    public void resolveOrientation(Quaternion rotation) {
-        Event resultingEvent = getCurrentMode().resolveOrientation(rotation);
+    public void resolveOrientation(Quaternion current) {
+        if (orientationZeroReset) {
+            orientationZero = new Quaternion(current);
+            orientationZero.inverse();
+            orientationZeroReset = false;
+        }
+        Quaternion rotation = new Quaternion(current);
+        rotation.multiply(orientationZero);
+
+        // Calculate Euler angles (roll, pitch, and yaw) from the quaternion.
+        float roll = (float) Math.toDegrees(Quaternion.roll(rotation));
+        float pitch = - (float) Math.toDegrees(Quaternion.pitch(rotation));
+        float yaw = - (float) Math.toDegrees(Quaternion.yaw(rotation));
+
+        // Adjust roll and pitch for the orientation of the Myo on the arm.
+        if (myo.getXDirection() == XDirection.TOWARD_ELBOW) {
+            roll *= -1;
+            pitch *= -1;
+        }
+
+        Event resultingEvent = getCurrentMode().resolveOrientation(roll, pitch, yaw);
         if(resultingEvent != null) myoidStateMachine.apply(resultingEvent);
     }
 
     public void resolveAcceleration(Vector3 acceleration) {
-        Event resultingEvent = getCurrentMode().resolveAcceleration(acceleration);
+        Event resultingEvent = getCurrentMode().resolveAcceleration(acceleration, myo.getXDirection() == XDirection.TOWARD_ELBOW);
         if(resultingEvent != null) myoidStateMachine.apply(resultingEvent);
     }
 
@@ -46,11 +68,14 @@ public class InputResolver {
     }
 
     public void resolveUnlock() {
+        Log.d(TAG, "Resolving unlock");
+        orientationZeroReset = true;
         getCurrentMode().resolveUnlock();
     }
 
-    public void setArm(Arm arm) {
-        this.arm = arm;
+    public void resolveLock() {
+        Log.d(TAG, "Resolving lock");
+        getCurrentMode().resolveLock();
     }
 
     private Mode getCurrentMode() {
@@ -67,7 +92,7 @@ public class InputResolver {
                 //OPTIONS_DOORWAY_FROM_MOUSE
                 .onEnter(State.OPTIONS_DOORWAY_FROM_MOUSE, new RunnableOnEntry(State.OPTIONS_DOORWAY_FROM_MOUSE))
                 .addTransition(State.OPTIONS_DOORWAY_FROM_MOUSE, Event.RELAX, State.MOUSE)
-                .addTransition(State.OPTIONS_DOORWAY_FROM_MOUSE, Event.Z_AXIS, State.OPTIONS_FROM_MOUSE)
+                .addTransition(State.OPTIONS_DOORWAY_FROM_MOUSE, Event.X_AXIS_PULL, State.OPTIONS_FROM_MOUSE)
                 //TAPPED
                 .onEnter(State.TAPPED, new RunnableOnEntry(State.TAPPED))
                 .addTransition(State.TAPPED, Event.RELAX, State.MOUSE)
@@ -81,20 +106,29 @@ public class InputResolver {
                 .onEnter(State.MEDIA, new RunnableOnEntry(State.MEDIA))
                 .addTransition(State.MEDIA, Event.SPREAD, State.OPTIONS_DOORWAY_FROM_MEDIA)
                 .addTransition(State.MEDIA, Event.FIST, State.MEIDA_VOLUME)
+                .onExit(State.MEDIA, new RunnableOnExit(State.MEDIA))
                 //OPTIONS_DOORWAY_FROM_MEDIA
                 .onEnter(State.OPTIONS_DOORWAY_FROM_MEDIA, new RunnableOnEntry(State.OPTIONS_DOORWAY_FROM_MEDIA))
-                .addTransition(State.OPTIONS_DOORWAY_FROM_MEDIA, Event.Z_AXIS, State.OPTIONS_FROM_MEDIA)
+                .addTransition(State.OPTIONS_DOORWAY_FROM_MEDIA, Event.X_AXIS_PULL, State.OPTIONS_FROM_MEDIA)
                 .addTransition(State.OPTIONS_DOORWAY_FROM_MEDIA, Event.RELAX, State.MEDIA)
                 //OPTIONS_FROM_MEDIA
                 .onEnter(State.OPTIONS_FROM_MEDIA, new RunnableOnEntry(State.OPTIONS_FROM_MEDIA))
                 .addTransition(State.OPTIONS_FROM_MEDIA, Event.LEFT, State.MEDIA)
                 .addTransition(State.OPTIONS_FROM_MEDIA, Event.OPTION_SELECTED, State.MEDIA)
                 .addTransition(State.OPTIONS_FROM_MEDIA, Event.SWITCH_MODE, State.MOUSE)
-                .onExit(State.OPTIONS_FROM_MEDIA, new RunnableOnExit(State.OPTIONS_FROM_MEDIA))
+                .onExit(State.OPTIONS_FROM_MEDIA, new RunnableOnExit(State.OPTIONS_FROM_MOUSE))
                 //MEDIA_VOLUME
                 .onEnter(State.MEIDA_VOLUME, new RunnableOnEntry(State.MEIDA_VOLUME))
                 .addTransition(State.MEIDA_VOLUME, Event.RELAX, State.MEDIA)
                 .build();
+    }
+
+    public void setMyo(Myo myo) {
+        this.myo = myo;
+    }
+
+    public Myo getMyo() {
+        return myo;
     }
 
     private class RunnableOnExit implements Runnable {

@@ -67,8 +67,7 @@ public class OptionsController {
             graphicsInitialized = true;
         }
         optionsWindow.setVisibility(View.VISIBLE);
-        currentSet = IconSet.MAIN;
-        showCurrentSet();
+        showIconSet(IconSet.MAIN);
         pointer.setVisibility(View.VISIBLE);
     }
 
@@ -136,7 +135,7 @@ public class OptionsController {
         windowManager.updateViewLayout(pointer, pointerParams);
     }
 
-    public Icon movePointerBy(int x, int y) {
+    public Icon movePointerByAndChooseIconIfHit(int x, int y) {
         if (graphicsInitialized) {
             int newX = pointerParams.x + x;
             int newY = pointerParams.y + y;
@@ -145,7 +144,7 @@ public class OptionsController {
                 pointerParams.y = newY;
                 windowManager.updateViewLayout(pointer, pointerParams);
             }
-            return checkIfWithinThresholdOfAnIcon();
+            return checkIfAndReturnHitIcon();
         }
         return null;
     }
@@ -188,7 +187,7 @@ public class OptionsController {
         }
     }
 
-    private Icon checkIfWithinThresholdOfAnIcon() {
+    private Icon checkIfAndReturnHitIcon() {
         Point myPos = getPointerCenter();
         for (Icon icon : currentSet.getIcons()) {
             View view = currentSet.getView(icon);
@@ -219,7 +218,7 @@ public class OptionsController {
         }
         i = 0;
         for (NavIcon icon : NavIcon.values()) {
-            ImageView iconView = initializeIconInCircle(icon, i-1, 4);
+            ImageView iconView = initializeIconInCircle(icon, i+1, 4);
             IconSet.NAV.addView(icon, iconView);
             i++;
         }
@@ -302,6 +301,11 @@ public class OptionsController {
         pointer.setImageResource(resource);
     }
 
+    public void resetScreen() {
+        resetPointerToCenter();
+        showCurrentSet();
+    }
+
     enum IconSet {
         MAIN,
         NAV,
@@ -340,17 +344,14 @@ public class OptionsController {
 
     enum MainIcon implements Icon {
         SEARCH(R.drawable.ic_search_24dp),
+        QS(R.drawable.ic_settings_24dp),
+        NAV(R.drawable.ic_navigation_24dp),
         MEDIA_MOUSE {
             @Override
             public int getIconImage() {
-                if (Options.mouseOrMedia == State.MOUSE)
-                    return R.drawable.ic_headset_24dp;
-                else
-                    return R.drawable.ic_mouse_24dp;
+                return Options.mouseOrMedia == State.MOUSE ? R.drawable.ic_headset_24dp : R.drawable.ic_mouse_24dp;
             }
-        },
-        NAV(R.drawable.ic_navigation_24dp),
-        QS(R.drawable.ic_settings_24dp);
+        };
 
         private int iconImage;
 
@@ -369,9 +370,9 @@ public class OptionsController {
 
 
     enum NavIcon implements Icon {
-        BACK(R.drawable.ic_nav_back_24dp),
+        RECENT(R.drawable.ic_nav_recent_24dp),
         HOME(R.drawable.ic_nav_home_24dp),
-        RECENT(R.drawable.ic_nav_recent_24dp);
+        BACK(R.drawable.ic_nav_back_24dp);
 
         private int iconImage;
 
@@ -390,8 +391,7 @@ public class OptionsController {
             public int getIconImage() {
                 try {
                     int wifiOn = Settings.Global.getInt(getContentResolver(), Settings.Global.WIFI_ON);
-                    if (wifiOn != 0) return R.drawable.ic_signal_wifi_4_bar_24dp;
-                    else return R.drawable.ic_signal_wifi_off_24dp;
+                    return wifiOn != 0 ? R.drawable.ic_signal_wifi_4_bar_24dp : R.drawable.ic_signal_wifi_off_24dp;
                 } catch (Settings.SettingNotFoundException e) {
                     e.printStackTrace();
                 }
@@ -399,13 +399,12 @@ public class OptionsController {
             }
         },
         TORCH {
-            boolean torchOn = false;
             @Override
             public int getIconImage() {
-                return R.drawable.ic_torch_toggle_6_24dp;
+                    return Options.torchOn ? R.drawable.ic_torch_on_24dp : R.drawable.ic_torch_off_24dp;
             }
         },
-        MUTE {
+        RINGER {
             @Override
             public int getIconImage() {
                 AudioManager audioManager = (AudioManager) MyoidAccessibilityService.getMyoidService().getSystemService(Context.AUDIO_SERVICE);
@@ -431,8 +430,7 @@ public class OptionsController {
                 } catch (Settings.SettingNotFoundException e) {
                     e.printStackTrace();
                 }
-                if(rotationLocked) return R.drawable.ic_screen_lock_portrait_24dp;
-                else return R.drawable.ic_screen_rotation_24dp;
+                return rotationLocked ? R.drawable.ic_screen_lock_portrait_24dp : R.drawable.ic_screen_rotation_24dp;
             }
         };
 

@@ -21,14 +21,18 @@ public class MyoListener extends AbstractDeviceListener {
     @Override
     public void onConnect(Myo myo, long timestamp) {
         performer.setMyo(myo);
-        inputResolver.setArm(myo.getArm());
+        inputResolver.setMyo(myo);
         performer.shortToast("Myo Connected");
+    }
+
+    @Override
+    public void onLock(Myo myo, long timestamp) {
+        inputResolver.resolveLock();
     }
 
     @Override
     public void onDisconnect(Myo myo, long timestamp) {
         performer.setMyo(null);
-        inputResolver.setArm(null);
         performer.shortToast("Myo Disconnected");
     }
 
@@ -43,8 +47,8 @@ public class MyoListener extends AbstractDeviceListener {
     }
 
     @Override
-    public void onAccelerometerData(Myo myo, long timestamp, Vector3 accel) {
-        inputResolver.resolveAcceleration(accel);
+    public void onAccelerometerData(Myo myo, long timestamp, Vector3 acceleration) {
+        inputResolver.resolveAcceleration(acceleration);
     }
 
     @Override
@@ -54,7 +58,6 @@ public class MyoListener extends AbstractDeviceListener {
 
     @Override
     public void onUnlock(Myo myo, long timestamp) {
-        super.onUnlock(myo, timestamp);
         inputResolver.resolveUnlock();
     }
 }

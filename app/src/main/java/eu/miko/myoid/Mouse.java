@@ -1,13 +1,10 @@
 package eu.miko.myoid;
 
 import com.thalmic.myo.Pose;
-import com.thalmic.myo.Quaternion;
 import com.thalmic.myo.Vector3;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-
-import static java.lang.Math.abs;
 
 @Singleton
 class Mouse extends Mode {
@@ -54,22 +51,8 @@ class Mouse extends Mode {
     }
 
     @Override
-    public Event resolveOrientation(Quaternion rotation) {
-        //float roll = (float) Math.toDegrees(Quaternion.roll(rotation));
-        float pitch = (float) Math.toDegrees(Quaternion.pitch(rotation));
-        float yaw = (float) Math.toDegrees(Quaternion.yaw(rotation));
-
+    public Event resolveOrientation(float roll, float pitch, float yaw) {
         performer.moveCursor(xMovement(yaw), yMovement(pitch));
-        return null;
-    }
-
-    @Override
-    public Event resolveAcceleration(Vector3 acceleration) {
-        return null;
-    }
-
-    @Override
-    public Event resolveGyro(Vector3 gyro) {
         return null;
     }
 

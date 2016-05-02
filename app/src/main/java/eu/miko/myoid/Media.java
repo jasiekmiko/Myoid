@@ -1,8 +1,6 @@
 package eu.miko.myoid;
 
 import com.thalmic.myo.Pose;
-import com.thalmic.myo.Quaternion;
-import com.thalmic.myo.Vector3;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -16,50 +14,43 @@ public class Media extends Mode {
 
     @Override
     public void onEntry() {
+        performer.displayMediaStatus();
         performer.unlockMyoTimed();
         Options.mouseOrMedia = State.MEDIA;
     }
 
     @Override
     public Event resolvePose(Pose pose) {
+        performer.changeMediaStatus(pose);
+
         Event poseResult = null;
+        boolean shouldLockTimerExtend = false;
         switch (pose) {
             case REST:
                 break;
             case FIST:
                 poseResult = Event.FIST;
+                shouldLockTimerExtend = true;
                 break;
             case WAVE_IN:
                 performer.performMediaAction(Action.NEXT);
+                shouldLockTimerExtend = true;
                 break;
             case WAVE_OUT:
                 performer.performMediaAction(Action.PREV);
+                shouldLockTimerExtend = true;
                 break;
             case FINGERS_SPREAD:
-                performer.performMediaAction(Action.PLAY_PAUSE);//TODO: Temporary, in the end should happen only when options are not entered.
                 poseResult = Event.SPREAD;
+                break;
             case DOUBLE_TAP:
                 performer.lockMyo();
                 break;
             case UNKNOWN:
                 break;
         }
+        if (shouldLockTimerExtend) performer.unlockMyoTimed();
         return poseResult;
-    }
-
-    @Override
-    public Event resolveOrientation(Quaternion rotation) {
-        return null;
-    }
-
-    @Override
-    public Event resolveAcceleration(Vector3 acceleration) {
-        return null;
-    }
-
-    @Override
-    public Event resolveGyro(Vector3 gyro) {
-        return null;
     }
 
     @Override
@@ -68,7 +59,13 @@ public class Media extends Mode {
     }
 
     @Override
+    public void resolveLock() {
+        performer.hideMediaStatus();
+    }
+
+    @Override
     public void resolveUnlock() {
+        performer.displayMediaStatus();
         performer.unlockMyoTimed();
     }
 
