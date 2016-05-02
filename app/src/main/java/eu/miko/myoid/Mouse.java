@@ -57,16 +57,6 @@ class Mouse extends Mode {
     }
 
     @Override
-    public Event resolveAcceleration(Vector3 acceleration) {
-        return null;
-    }
-
-    @Override
-    public Event resolveGyro(Vector3 gyro) {
-        return null;
-    }
-
-    @Override
     public void resolveUnlock() {
         performer.unlockMyoHold();
         performer.displayCursor();

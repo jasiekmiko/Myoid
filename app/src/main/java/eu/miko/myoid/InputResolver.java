@@ -47,7 +47,7 @@ public class InputResolver {
     }
 
     public void resolveAcceleration(Vector3 acceleration) {
-        Event resultingEvent = getCurrentMode().resolveAcceleration(acceleration);
+        Event resultingEvent = getCurrentMode().resolveAcceleration(acceleration, myo.getXDirection() == XDirection.TOWARD_ELBOW);
         if(resultingEvent != null) myoidStateMachine.apply(resultingEvent);
     }
 

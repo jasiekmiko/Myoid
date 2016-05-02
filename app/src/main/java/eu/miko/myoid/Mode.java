@@ -1,16 +1,21 @@
 package eu.miko.myoid;
 
 import com.thalmic.myo.Pose;
-import com.thalmic.myo.Quaternion;
 import com.thalmic.myo.Vector3;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import static java.lang.Math.abs;
 
-public abstract class Mode {
-    protected IPerformer performer;
+@Singleton
+public class Mode {
+    @Inject
     public Mode(Performer performer) {
         this.performer = performer;
     }
+
+    protected IPerformer performer;
 
     public void onEntry() {    }
 
@@ -35,7 +40,7 @@ public abstract class Mode {
         return (int)(-deg/3);
     }
 
-    public Event resolveAcceleration(Vector3 acceleration) {
+    public Event resolveAcceleration(Vector3 acceleration, boolean xDirectionTowardsElbow) {
         return null;
     }
 
