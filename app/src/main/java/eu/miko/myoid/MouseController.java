@@ -38,10 +38,13 @@ public class MouseController {
         cursor.setImageResource(R.drawable.cursor_pan);
 
         cursorParams = new WindowManager.LayoutParams(
-                CURSOR_SIZE,
-                CURSOR_SIZE,
-                WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                CURSOR_SIZE, CURSOR_SIZE,
+                WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                        | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+                        | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+                        | WindowManager.LayoutParams.FLAG_FULLSCREEN
+                        | WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR,
                 PixelFormat.TRANSLUCENT);
         cursorParams.gravity = Gravity.TOP | Gravity.START;
         resetCursorToMiddle();
@@ -99,11 +102,11 @@ public class MouseController {
     }
 
     private int keepOnScreenY(int y) {
-        return Math.max(0, Math.min(y, screenSize.y));
+        return Math.max(-CURSOR_SIZE/2, Math.min(y, screenSize.y - CURSOR_SIZE/2));
     }
 
     private int keepOnScreenX(int x) {
-        return Math.max(0, Math.min(x, screenSize.x));
+        return Math.max(-CURSOR_SIZE/2, Math.min(x, screenSize.x - CURSOR_SIZE/2));
     }
 
     private AccessibilityNodeInfo findChildAt(AccessibilityNodeInfo nodeInfo, int x, int y) {
