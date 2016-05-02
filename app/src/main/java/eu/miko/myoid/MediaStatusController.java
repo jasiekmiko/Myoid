@@ -15,6 +15,8 @@ public class MediaStatusController {
     final private MyoidAccessibilityService mas;
     final private WindowManager windowManager;
     private ImageView statusCircle;
+    private WindowManager.LayoutParams params;
+    private boolean viewsAdded = false;
 
     @Inject
     public MediaStatusController(MyoidAccessibilityService mas, WindowManager windowManager) {
@@ -31,18 +33,20 @@ public class MediaStatusController {
 
         Point size = new Point();
         windowManager.getDefaultDisplay().getSize(size);
-        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+        params = new WindowManager.LayoutParams(
                 138, 138,
                 size.x - 120, 100,
                 WindowManager.LayoutParams.TYPE_PHONE,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                 PixelFormat.TRANSLUCENT);
         params.gravity = Gravity.TOP | Gravity.START;
-
-        windowManager.addView(statusCircle, params);
     }
 
     public void display() {
+        if (!viewsAdded) {
+            windowManager.addView(statusCircle, params);
+            viewsAdded = true;
+        }
         statusCircle.setImageResource(R.drawable.blank);
         statusCircle.setVisibility(View.VISIBLE);
     }
