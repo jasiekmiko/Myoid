@@ -55,8 +55,10 @@ public class MouseController {
             windowManager.addView(cursor, cursorParams);
             cursorViewAdded = true;
         }
-        resetCursorToMiddle();
-        cursor.setVisibility(View.VISIBLE);
+        if (cursor.getVisibility() != View.VISIBLE) {
+            resetCursorToMiddle();
+            cursor.setVisibility(View.VISIBLE);
+        }
     }
 
     private void resetCursorToMiddle() {
