@@ -15,6 +15,7 @@ import javax.inject.Singleton;
 
 @Singleton
 public class MouseController {
+    public static final int CURSOR_SIZE = 69;
     ImageView cursor;
     WindowManager.LayoutParams cursorParams;
     boolean cursorViewAdded = false;
@@ -37,15 +38,13 @@ public class MouseController {
         cursor.setImageResource(R.drawable.cursor_pan);
 
         cursorParams = new WindowManager.LayoutParams(
-                69,
-                69,
+                CURSOR_SIZE,
+                CURSOR_SIZE,
                 WindowManager.LayoutParams.TYPE_PHONE,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
-
         cursorParams.gravity = Gravity.TOP | Gravity.START;
-        cursorParams.x = 0;
-        cursorParams.y = 100;
+        resetCursorToMiddle();
     }
 
     public void displayCursor() {
@@ -53,7 +52,13 @@ public class MouseController {
             windowManager.addView(cursor, cursorParams);
             cursorViewAdded = true;
         }
+        resetCursorToMiddle();
         cursor.setVisibility(View.VISIBLE);
+    }
+
+    private void resetCursorToMiddle() {
+        cursorParams.x = (screenSize.x - CURSOR_SIZE) /2;
+        cursorParams.y = (screenSize.y - CURSOR_SIZE) /2;
     }
 
     public void moveCursor(int x, int y) {
