@@ -17,6 +17,8 @@ public class InputResolver {
     private static final String TAG = InputResolver.class.getName();
     private ModeFromStateMap modeFromState;
     private Myo myo;
+    private boolean orientationZeroReset = true;
+    private Quaternion orientationZero;
 
     @Inject
     public InputResolver(ModeFromStateMap modeFromState) {
@@ -31,11 +33,20 @@ public class InputResolver {
         myoidStateMachine.apply(resultingEvent);
     }
 
-    public void resolveOrientation(Quaternion rotation) {
+    public void resolveOrientation(Quaternion current) {
+        if (orientationZeroReset) {
+            orientationZero = new Quaternion(current);
+            orientationZero.inverse();
+            orientationZeroReset = false;
+        }
+        Quaternion rotation = new Quaternion(current);
+        rotation.multiply(orientationZero);
+
         // Calculate Euler angles (roll, pitch, and yaw) from the quaternion.
         float roll = (float) Math.toDegrees(Quaternion.roll(rotation));
         float pitch = - (float) Math.toDegrees(Quaternion.pitch(rotation));
         float yaw = - (float) Math.toDegrees(Quaternion.yaw(rotation));
+
         // Adjust roll and pitch for the orientation of the Myo on the arm.
         if (myo.getXDirection() == XDirection.TOWARD_ELBOW) {
             roll *= -1;
@@ -58,6 +69,7 @@ public class InputResolver {
 
     public void resolveUnlock() {
         Log.d(TAG, "Resolving unlock");
+        orientationZeroReset = true;
         getCurrentMode().resolveUnlock();
     }
 

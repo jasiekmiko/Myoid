@@ -44,6 +44,7 @@ public class MediaStatusController {
     }
 
     public void display() {
+        statusCircle.setImageResource(R.drawable.blank);
         statusCircle.setVisibility(View.VISIBLE);
     }
 
