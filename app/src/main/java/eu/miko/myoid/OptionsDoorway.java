@@ -42,7 +42,7 @@ public class OptionsDoorway extends Mode {
     @Override
     public Event resolveAcceleration(Vector3 acceleration, boolean xDirectionTowardsElbow) {
         float threshold = xDirectionTowardsElbow ? 0.3f : -0.3f;
-        if (acceleration.x() > threshold) return Event.Z_AXIS;
+        if (acceleration.x() > threshold) return Event.X_AXIS_PULL;
         return null;
     }
 

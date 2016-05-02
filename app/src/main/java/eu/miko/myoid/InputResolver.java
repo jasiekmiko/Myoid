@@ -80,7 +80,7 @@ public class InputResolver {
                 //OPTIONS_DOORWAY_FROM_MOUSE
                 .onEnter(State.OPTIONS_DOORWAY_FROM_MOUSE, new RunnableOnEntry(State.OPTIONS_DOORWAY_FROM_MOUSE))
                 .addTransition(State.OPTIONS_DOORWAY_FROM_MOUSE, Event.RELAX, State.MOUSE)
-                .addTransition(State.OPTIONS_DOORWAY_FROM_MOUSE, Event.Z_AXIS, State.OPTIONS_FROM_MOUSE)
+                .addTransition(State.OPTIONS_DOORWAY_FROM_MOUSE, Event.X_AXIS_PULL, State.OPTIONS_FROM_MOUSE)
                 //TAPPED
                 .onEnter(State.TAPPED, new RunnableOnEntry(State.TAPPED))
                 .addTransition(State.TAPPED, Event.RELAX, State.MOUSE)
@@ -97,7 +97,7 @@ public class InputResolver {
                 .onExit(State.MEDIA, new RunnableOnExit(State.MEDIA))
                 //OPTIONS_DOORWAY_FROM_MEDIA
                 .onEnter(State.OPTIONS_DOORWAY_FROM_MEDIA, new RunnableOnEntry(State.OPTIONS_DOORWAY_FROM_MEDIA))
-                .addTransition(State.OPTIONS_DOORWAY_FROM_MEDIA, Event.Z_AXIS, State.OPTIONS_FROM_MEDIA)
+                .addTransition(State.OPTIONS_DOORWAY_FROM_MEDIA, Event.X_AXIS_PULL, State.OPTIONS_FROM_MEDIA)
                 .addTransition(State.OPTIONS_DOORWAY_FROM_MEDIA, Event.RELAX, State.MEDIA)
                 //OPTIONS_FROM_MEDIA
                 .onEnter(State.OPTIONS_FROM_MEDIA, new RunnableOnEntry(State.OPTIONS_FROM_MEDIA))

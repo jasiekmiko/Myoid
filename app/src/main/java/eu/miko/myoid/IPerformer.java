@@ -52,5 +52,11 @@ public interface IPerformer {
 
     void adjustMediaVolume(float roll);
 
+    void changeMediaStatus(Pose pose);
+
     void setVolumeAdjustStart();
+
+    void displayMediaStatus();
+
+    void hideMediaStatus();
 }

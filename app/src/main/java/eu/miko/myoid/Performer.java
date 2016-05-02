@@ -44,11 +44,13 @@ public class Performer implements IPerformer {
     private MyoidAccessibilityService mas = MyoidAccessibilityService.getMyoidService();
     private ComponentName nlComponentName = new ComponentName(mas, MyoidNotificationListener.class);
     private int volumeAdjustBase;
+    private MediaStatusController mediaStatusController;
 
     @Inject
-    public Performer(OptionsController optionsController, MouseController mouseController) {
+    public Performer(OptionsController optionsController, MouseController mouseController, MediaStatusController mediaStatusController) {
         this.optionsController = optionsController;
         this.mouseController = mouseController;
+        this.mediaStatusController = mediaStatusController;
 
         startNotificationListener();
     }
@@ -171,6 +173,21 @@ public class Performer implements IPerformer {
     @Override
     public void hideOptions() {
         optionsController.dismissOptions();
+    }
+
+    @Override
+    public void displayMediaStatus() {
+        mediaStatusController.display();
+    }
+
+    @Override
+    public void hideMediaStatus() {
+        mediaStatusController.hide();
+    }
+
+    @Override
+    public void changeMediaStatus(Pose pose) {
+        mediaStatusController.changeImage(getPoseImage(pose));
     }
 
     @Override

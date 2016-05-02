@@ -14,12 +14,15 @@ public class Media extends Mode {
 
     @Override
     public void onEntry() {
+        performer.displayMediaStatus();
         performer.unlockMyoTimed();
         Options.mouseOrMedia = State.MEDIA;
     }
 
     @Override
     public Event resolvePose(Pose pose) {
+        performer.changeMediaStatus(pose);
+
         Event poseResult = null;
         boolean shouldLockTimerExtend = false;
         switch (pose) {
@@ -56,7 +59,13 @@ public class Media extends Mode {
     }
 
     @Override
+    public void resolveLock() {
+        performer.hideMediaStatus();
+    }
+
+    @Override
     public void resolveUnlock() {
+        performer.displayMediaStatus();
         performer.unlockMyoTimed();
     }
 
