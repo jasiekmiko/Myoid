@@ -33,11 +33,10 @@ public class MediaStatusController {
         windowManager.getDefaultDisplay().getSize(size);
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                 138, 138,
-                size.x - 138, 0,
+                size.x - 120, 100,
                 WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                 PixelFormat.TRANSLUCENT);
-
         params.gravity = Gravity.TOP | Gravity.START;
 
         windowManager.addView(statusCircle, params);
