@@ -70,8 +70,8 @@ public class MouseController {
     }
 
     private void resetCursorToMiddle() {
-        cursorParams.x = (screenSize.x - CURSOR_SIZE) /2;
-        cursorParams.y = (screenSize.y - CURSOR_SIZE) /2;
+        cursorParams.x = (screenSize.x - CURSOR_SIZE) / 2;
+        cursorParams.y = (screenSize.y - CURSOR_SIZE) / 2;
     }
 
     public void moveCursor(int x, int y) {
@@ -131,15 +131,15 @@ public class MouseController {
     }
 
     private Point getCursorCenter() {
-        return new Point(cursorParams.x + (CURSOR_SIZE/2), cursorParams.y + (CURSOR_SIZE/2));
+        return new Point(cursorParams.x + (CURSOR_SIZE / 2), cursorParams.y + (CURSOR_SIZE / 2));
     }
 
     private int keepOnScreenY(int y) {
-        return Math.max(-CURSOR_SIZE/2, Math.min(y, screenSize.y - CURSOR_SIZE/2));
+        return Math.max(-CURSOR_SIZE / 2, Math.min(y, screenSize.y - CURSOR_SIZE / 2));
     }
 
     private int keepOnScreenX(int x) {
-        return Math.max(-CURSOR_SIZE/2, Math.min(x, screenSize.x - CURSOR_SIZE/2));
+        return Math.max(-CURSOR_SIZE / 2, Math.min(x, screenSize.x - CURSOR_SIZE / 2));
     }
 
     private AccessibilityNodeInfo findChildAt(AccessibilityNodeInfo nodeInfo, int x, int y) {
@@ -185,4 +185,5 @@ public class MouseController {
     public void setCursorResource(int resource) {
         cursor.setImageResource(resource);
     }
+
 }
