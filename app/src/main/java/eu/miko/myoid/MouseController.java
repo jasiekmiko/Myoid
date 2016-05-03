@@ -3,6 +3,8 @@ package eu.miko.myoid;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.os.Build;
+import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.View;
@@ -10,8 +12,16 @@ import android.view.WindowManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.ImageView;
 
+import com.android.internal.util.Predicate;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Stack;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
+
+import eu.miko.myoid.Exceptions.MASProbablyNotConnectedException;
 
 @Singleton
 public class MouseController {
@@ -62,8 +72,8 @@ public class MouseController {
     }
 
     private void resetCursorToMiddle() {
-        cursorParams.x = (screenSize.x - CURSOR_SIZE) /2;
-        cursorParams.y = (screenSize.y - CURSOR_SIZE) /2;
+        cursorParams.x = (screenSize.x - CURSOR_SIZE) / 2;
+        cursorParams.y = (screenSize.y - CURSOR_SIZE) / 2;
     }
 
     public void moveCursor(int x, int y) {
@@ -78,86 +88,105 @@ public class MouseController {
         cursor.setVisibility(View.GONE);
     }
 
-    public String mouseScroll(boolean down) {
-        int scrollDir = down ? AccessibilityNodeInfo.ACTION_SCROLL_FORWARD : AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD;
-        AccessibilityNodeInfo root = mas.getRootInActiveWindow();
+    public String mouseScroll(boolean scrollForward) throws MASProbablyNotConnectedException {
+        int scrollDirection = scrollForward
+                ? AccessibilityNodeInfo.ACTION_SCROLL_FORWARD
+                : AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD;
         Point cursorCenter = getCursorCenter();
-        AccessibilityNodeInfo rootUnderCursor = findChildAt(root, cursorCenter.x, cursorCenter.y);
-        if (rootUnderCursor != null) {
-            AccessibilityNodeInfo scrollableView = findScrollable(rootUnderCursor);
-            if (scrollableView != null)
-                scrollableView.performAction(scrollDir);
-            else return "nothing to scroll here";
+        List<AccessibilityNodeInfo> scrollables = findNodesAt(cursorCenter, new PredicateScrollable(scrollDirection));
+        if (!scrollables.isEmpty()) {
+            int index = scrollables.size() - 1;
+            scrollables.get(index).performAction(scrollDirection);
         } else return "nothing here!";
         return null;
     }
 
-    public String mouseTap() {
-        AccessibilityNodeInfo root = mas.getRootInActiveWindow();
+    public String mouseTap() throws MASProbablyNotConnectedException {
         Point cursorCenter = getCursorCenter();
-        AccessibilityNodeInfo rootUnderCursor = findChildAt(root, cursorCenter.x, cursorCenter.y);
-        if (rootUnderCursor != null) {
-            AccessibilityNodeInfo clickableNode = findClickable(rootUnderCursor);
-            if (clickableNode != null) {
-                clickableNode.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-            } else return "nothing to tap here";
-        } else return "nothing here!";
+        List<AccessibilityNodeInfo> clickables = findNodesAt(cursorCenter, new PredicateClickable());
+        if (!clickables.isEmpty()) {
+            int lastIndex = clickables.size() - 1;
+            clickables.get(lastIndex).performAction(AccessibilityNodeInfo.ACTION_CLICK);
+        } else return "Nothing to Tap here!";
         return null;
+    }
+
+    private List<AccessibilityNodeInfo> findNodesAt(Point point, Predicate<AccessibilityNodeInfo> predicate) throws MASProbablyNotConnectedException {
+        List<AccessibilityNodeInfo> clickables = new ArrayList<>();
+        Stack<AccessibilityNodeInfo> todos = new Stack<>();
+        AccessibilityNodeInfo root = mas.getRootInActiveWindow();
+        if (root == null) throw new MASProbablyNotConnectedException();
+        todos.push(root);
+        while (!todos.empty()) {
+            AccessibilityNodeInfo node = todos.pop();
+            Rect rootRect = new Rect();
+            node.getBoundsInScreen(rootRect);
+            if (rootRect.contains(point.x, point.y)) {
+                if (predicate.apply(node)) clickables.add(node);
+                for (int childIndex = 0; childIndex < node.getChildCount(); childIndex++) {
+                    todos.push(node.getChild(childIndex));
+                }
+            }
+        }
+        return clickables;
     }
 
     private Point getCursorCenter() {
-        return new Point(cursorParams.x + (CURSOR_SIZE/2), cursorParams.y + (CURSOR_SIZE/2));
+        return new Point(cursorParams.x + (CURSOR_SIZE / 2), cursorParams.y + (CURSOR_SIZE / 2));
     }
 
     private int keepOnScreenY(int y) {
-        return Math.max(-CURSOR_SIZE/2, Math.min(y, screenSize.y - CURSOR_SIZE/2));
+        return Math.max(-CURSOR_SIZE / 2, Math.min(y, screenSize.y - CURSOR_SIZE / 2));
     }
 
     private int keepOnScreenX(int x) {
-        return Math.max(-CURSOR_SIZE/2, Math.min(x, screenSize.x - CURSOR_SIZE/2));
-    }
-
-    private AccessibilityNodeInfo findChildAt(AccessibilityNodeInfo nodeInfo, int x, int y) {
-        if (nodeInfo == null) return null;
-        Rect bounds = new Rect();
-        nodeInfo.getBoundsInScreen(bounds);
-        int childCount = nodeInfo.getChildCount();
-        if (!bounds.contains(x, y)) return null;
-        else if (childCount == 0) return nodeInfo;
-
-        int childIndex = 0;
-        while (childIndex < childCount) {
-            AccessibilityNodeInfo result = findChildAt(nodeInfo.getChild(childIndex), x, y);
-            if (result != null) return result;
-            childIndex += 1;
-        }
-        return nodeInfo;
-
-    }
-
-    private AccessibilityNodeInfo findClickable(AccessibilityNodeInfo root) {
-        if (root.isClickable()) return root;
-        int nChildren = root.getChildCount();
-        for (int i = 0; i < nChildren; i++) {
-            AccessibilityNodeInfo child = root.getChild(i);
-            AccessibilityNodeInfo maybeClickable = findClickable(child);
-            if (maybeClickable != null) return maybeClickable;
-        }
-        return null;
-    }
-
-    private AccessibilityNodeInfo findScrollable(AccessibilityNodeInfo root) {
-        if (root.isScrollable()) return root;
-        int nChildren = root.getChildCount();
-        for (int i = 0; i < nChildren; i++) {
-            AccessibilityNodeInfo child = root.getChild(i);
-            AccessibilityNodeInfo maybeScrollable = findScrollable(child);
-            if (maybeScrollable != null) return maybeScrollable;
-        }
-        return null;
+        return Math.max(-CURSOR_SIZE / 2, Math.min(x, screenSize.x - CURSOR_SIZE / 2));
     }
 
     public void setCursorResource(int resource) {
         cursor.setImageResource(resource);
+    }
+
+    private class PredicateScrollable implements Predicate<AccessibilityNodeInfo> {
+        private final String TAG = PredicateScrollable.class.getName();
+        private int scrollDirection;
+        private AccessibilityNodeInfo.AccessibilityAction scrollAction;
+
+        public PredicateScrollable(int scrollDirection) {
+            this.scrollDirection = scrollDirection;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                switch (scrollDirection) {
+                    case AccessibilityNodeInfo.ACTION_SCROLL_FORWARD:
+                        scrollAction = AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_FORWARD;
+                        break;
+                    case AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD:
+                        scrollAction = AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_BACKWARD;
+                        break;
+                    default:
+                        Log.w(TAG, "Unrecognized scroll direction passed to predicate.");
+                }
+            }
+        }
+
+        @Override
+        public boolean apply(AccessibilityNodeInfo node) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+                return node.getActionList().contains(scrollAction);
+            else
+                //noinspection deprecation
+                return (node.getActions() & scrollDirection) > 0;
+        }
+    }
+
+    static class PredicateClickable implements Predicate<AccessibilityNodeInfo> {
+        @Override
+        public boolean apply(AccessibilityNodeInfo node) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+                return node.getActionList().contains(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);
+            else
+                //noinspection deprecation
+                return (node.getActions() & AccessibilityNodeInfo.ACTION_CLICK) > 0;
+
+        }
     }
 }

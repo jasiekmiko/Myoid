@@ -1,7 +1,8 @@
 <accessibility-service
     xmlns:android="http://schemas.android.com/apk/res/android"
+    android:accessibilityEventTypes="typeViewFocused|typeViewClicked"
     android:accessibilityFeedbackType="feedbackHaptic"
     android:notificationTimeout="100"
-    android:settingsActivity="eu.miko.myoid.SettingsActivity"
+    android:settingsActivity="eu.miko.myoid.StatusActivity"
     android:canRetrieveWindowContent="true"
 />
