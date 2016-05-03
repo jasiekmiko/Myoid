@@ -30,6 +30,8 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import eu.miko.myoid.Exceptions.MASProbablyNotConnectedException;
+
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
@@ -293,8 +295,13 @@ public class Performer implements IPerformer {
 
     @Override
     public void mouseTap() {
-        String result = mouseController.mouseTap();
-        if (result != null) shortToast(result);
+        try {
+            String result = mouseController.mouseTap();
+            if (result != null) shortToast(result);
+        } catch (MASProbablyNotConnectedException e) {
+            shortToast("MAS not connected. Boo.");
+            e.printStackTrace();
+        }
     }
 
     @Override

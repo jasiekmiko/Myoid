@@ -10,8 +10,16 @@ import android.view.WindowManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.ImageView;
 
+import com.android.internal.util.Predicate;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Stack;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
+
+import eu.miko.myoid.Exceptions.MASProbablyNotConnectedException;
 
 @Singleton
 public class MouseController {
@@ -92,17 +100,34 @@ public class MouseController {
         return null;
     }
 
-    public String mouseTap() {
-        AccessibilityNodeInfo root = mas.getRootInActiveWindow();
+    public String mouseTap() throws MASProbablyNotConnectedException {
         Point cursorCenter = getCursorCenter();
-        AccessibilityNodeInfo rootUnderCursor = findChildAt(root, cursorCenter.x, cursorCenter.y);
-        if (rootUnderCursor != null) {
-            AccessibilityNodeInfo clickableNode = findClickable(rootUnderCursor);
-            if (clickableNode != null) {
-                clickableNode.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-            } else return "nothing to tap here";
-        } else return "nothing here!";
+        List<AccessibilityNodeInfo> clickables = findNodesAt(cursorCenter, new predicateClickable());
+        if (!clickables.isEmpty()) {
+            int lastIndex = clickables.size() - 1;
+            clickables.get(lastIndex).performAction(AccessibilityNodeInfo.ACTION_CLICK);
+        } else return "Nothing to Tap here!";
         return null;
+    }
+
+    private List<AccessibilityNodeInfo> findNodesAt(Point point, Predicate<AccessibilityNodeInfo> predicate) throws MASProbablyNotConnectedException {
+        List<AccessibilityNodeInfo> clickables = new ArrayList<>();
+        Stack<AccessibilityNodeInfo> todos = new Stack<>();
+        AccessibilityNodeInfo root = mas.getRootInActiveWindow();
+        if (root == null) throw new MASProbablyNotConnectedException();
+        todos.push(root);
+        while (!todos.empty()) {
+            AccessibilityNodeInfo node = todos.pop();
+            Rect rootRect = new Rect();
+            node.getBoundsInScreen(rootRect);
+            if (rootRect.contains(point.x, point.y)) {
+                if (predicate.apply(node)) clickables.add(node);
+                for (int childIndex = 0; childIndex < node.getChildCount(); childIndex++) {
+                    todos.push(node.getChild(childIndex));
+                }
+            }
+        }
+        return clickables;
     }
 
     private Point getCursorCenter() {
