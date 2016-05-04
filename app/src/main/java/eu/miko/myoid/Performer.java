@@ -125,14 +125,6 @@ public class Performer implements IPerformer {
     }
 
     @Override
-    public void openNotifications() {
-        if (mas.performGlobalAction(AccessibilityService.GLOBAL_ACTION_NOTIFICATIONS))
-            Log.d(TAG, "openNotifications performed.");
-        else
-            Log.d(TAG, "openNotifications failed.");
-    }
-
-    @Override
     public void openRecents() {
         if (mas.performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS))
             Log.d(TAG, "openRecents performed.");

@@ -1,7 +1,6 @@
 package eu.miko.myoid;
 
 import com.thalmic.myo.Pose;
-import com.thalmic.myo.Vector3;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -31,7 +30,6 @@ class Mouse extends Mode {
                 event = Event.FIST;
                 break;
             case WAVE_IN:
-                //TODO: distinguish between down, top, left and right
                 performer.mouseScroll(false);
                 break;
             case WAVE_OUT:

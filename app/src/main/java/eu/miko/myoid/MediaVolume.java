@@ -34,7 +34,7 @@ public class MediaVolume extends Mode {
             performer.setVolumeAdjustStart();
         }
         else
-            performer.adjustMediaVolume(startingRotation - roll);
+            performer.adjustMediaVolume(startingRotation + roll);
         return null;
     }
 }

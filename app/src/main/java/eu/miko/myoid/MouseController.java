@@ -4,7 +4,6 @@ import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Build;
-import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.View;

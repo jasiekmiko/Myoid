@@ -18,8 +18,6 @@ public interface IPerformer {
 
     void unlockMyoHold();
 
-    void openNotifications();
-
     void openRecents();
 
     void goBack();
