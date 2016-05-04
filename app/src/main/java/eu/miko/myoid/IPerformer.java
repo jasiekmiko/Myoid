@@ -36,7 +36,7 @@ public interface IPerformer {
 
     void hideCursor();
 
-    void mouseScroll(boolean down);
+    void mouseScroll(boolean out);
 
     void mouseTap();
 

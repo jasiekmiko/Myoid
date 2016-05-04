@@ -88,15 +88,16 @@ public class MouseController {
         cursor.setVisibility(View.GONE);
     }
 
-    public String mouseScroll(boolean scrollForward) throws MASProbablyNotConnectedException {
-        int scrollDirection = scrollForward
+    public String mouseScroll(boolean waveOut) throws MASProbablyNotConnectedException {
+        int scrollDirection = waveOut
                 ? AccessibilityNodeInfo.ACTION_SCROLL_FORWARD
                 : AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD;
         Point cursorCenter = getCursorCenter();
-        List<AccessibilityNodeInfo> scrollables = findNodesAt(cursorCenter, new PredicateScrollable(scrollDirection));
+        List<AccessibilityNodeInfo> scrollables = findNodesAt(cursorCenter, new PredicateScrollable());
         if (!scrollables.isEmpty()) {
             int index = scrollables.size() - 1;
-            scrollables.get(index).performAction(scrollDirection);
+            AccessibilityNodeInfo scrollable = scrollables.get(index);
+            scrollable.performAction(scrollDirection);
         } else return "nothing here!";
         return null;
     }
@@ -148,33 +149,17 @@ public class MouseController {
     }
 
     private class PredicateScrollable implements Predicate<AccessibilityNodeInfo> {
-        private final String TAG = PredicateScrollable.class.getName();
-        private int scrollDirection;
-        private AccessibilityNodeInfo.AccessibilityAction scrollAction;
-
-        public PredicateScrollable(int scrollDirection) {
-            this.scrollDirection = scrollDirection;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                switch (scrollDirection) {
-                    case AccessibilityNodeInfo.ACTION_SCROLL_FORWARD:
-                        scrollAction = AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_FORWARD;
-                        break;
-                    case AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD:
-                        scrollAction = AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_BACKWARD;
-                        break;
-                    default:
-                        Log.w(TAG, "Unrecognized scroll direction passed to predicate.");
-                }
-            }
-        }
-
         @Override
         public boolean apply(AccessibilityNodeInfo node) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-                return node.getActionList().contains(scrollAction);
-            else
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                List<AccessibilityNodeInfo.AccessibilityAction> actionList = node.getActionList();
+                return actionList.contains(AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_BACKWARD)
+                        || actionList.contains(AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_FORWARD);
+            }
+            else {
                 //noinspection deprecation
-                return (node.getActions() & scrollDirection) > 0;
+                return (node.getActions() & (AccessibilityNodeInfo.ACTION_SCROLL_FORWARD | AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD)) > 0;
+            }
         }
     }
 

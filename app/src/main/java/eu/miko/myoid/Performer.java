@@ -288,9 +288,9 @@ public class Performer implements IPerformer {
     }
 
     @Override
-    public void mouseScroll(boolean down) {
+    public void mouseScroll(boolean out) {
         try {
-            String result = mouseController.mouseScroll(down);
+            String result = mouseController.mouseScroll(out);
             if (result != null) shortToast(result);
         } catch (MASProbablyNotConnectedException e) {
             shortToast("MAS not connected. Boo.");
