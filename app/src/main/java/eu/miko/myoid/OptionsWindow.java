@@ -12,10 +12,12 @@ import javax.inject.Inject;
 class OptionsWindow extends View {
     private Rect viewRectangle = new Rect();
     private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private double circleRadius;
 
     @Inject
-    public OptionsWindow(Context context) {
+    public OptionsWindow(Context context, double circleRadius) {
         super(context);
+        this.circleRadius = circleRadius*1.1f;
     }
 
     @Override
@@ -32,7 +34,7 @@ class OptionsWindow extends View {
 
     private void drawBackground(Canvas canvas) {
         paint.setStyle(Paint.Style.FILL);
-        paint.setColor(Color.argb(123, 0, 0, 255));
-        canvas.drawRect(viewRectangle, paint);
+        paint.setColor(Color.argb(150, 0, 188, 222));
+        canvas.drawCircle(viewRectangle.centerX(),viewRectangle.centerY(), (float) circleRadius, paint);
     }
 }

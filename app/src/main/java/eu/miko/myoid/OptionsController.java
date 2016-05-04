@@ -88,7 +88,7 @@ public class OptionsController {
     }
 
     void initOptionsWindow() {
-        optionsWindow = new OptionsWindow(mas);
+        optionsWindow = new OptionsWindow(mas, circleRadius + iconRadius);
         optionsWindow.setVisibility(View.GONE);
         optionsWindow.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -101,10 +101,7 @@ public class OptionsController {
             }
         });
         optionsLayoutParams = new WindowManager.LayoutParams(
-                screenSize.x - 200, // size
-                screenSize.y - 200,
-                100, // offsets
-                100,
+                screenSize.x, screenSize.y,
                 WindowManager.LayoutParams.TYPE_PHONE,
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
                         | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
