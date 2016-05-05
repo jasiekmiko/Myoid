@@ -12,7 +12,9 @@ import com.thalmic.myo.Vector3;
 import com.thalmic.myo.XDirection;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
+@Singleton
 public class InputResolver {
     private static final String TAG = InputResolver.class.getName();
     private ModeFromStateMap modeFromState;
@@ -129,13 +131,9 @@ public class InputResolver {
         this.myo = myo;
     }
 
-    public Myo getMyo() {
-        return myo;
-    }
-
     public boolean isMouseModeAndUnlocked() {
         return myoidStateMachine.getState() == State.MOUSE
-                && myo.isUnlocked();
+                && myo != null && myo.isUnlocked();
     }
 
     private class RunnableOnExit implements Runnable {
