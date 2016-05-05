@@ -106,7 +106,9 @@ public class MouseController {
         List<AccessibilityNodeInfo> clickables = findNodesAt(cursorCenter, new PredicateClickable());
         if (!clickables.isEmpty()) {
             int lastIndex = clickables.size() - 1;
-            clickables.get(lastIndex).performAction(AccessibilityNodeInfo.ACTION_CLICK);
+            AccessibilityNodeInfo clickable = clickables.get(lastIndex);
+            if (!clickable.performAction(AccessibilityNodeInfo.ACTION_CLICK))
+                clickable.performAction(AccessibilityNodeInfo.ACTION_FOCUS);
         } else return "Nothing to Tap here!";
         return null;
     }
@@ -166,10 +168,11 @@ public class MouseController {
         @Override
         public boolean apply(AccessibilityNodeInfo node) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-                return node.getActionList().contains(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);
+                return node.getActionList().contains(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK)
+                        || node.getActionList().contains(AccessibilityNodeInfo.AccessibilityAction.ACTION_FOCUS);
             else
                 //noinspection deprecation
-                return (node.getActions() & AccessibilityNodeInfo.ACTION_CLICK) > 0;
+                return (node.getActions() & (AccessibilityNodeInfo.ACTION_CLICK | AccessibilityNodeInfo.ACTION_FOCUS)) > 0;
 
         }
     }
