@@ -18,21 +18,18 @@ import javax.inject.Inject;
 import dagger.ObjectGraph;
 
 public class MyoidAccessibilityService extends AccessibilityService {
-    static final int REQUEST_VOICE_INPUT = 101;
+    private final String TAG = MyoidAccessibilityService.class.getName();
     private static MyoidAccessibilityService me;
+    @Inject IMyoHubManager myoHubManager;
+    @Inject InputResolver inputResolver;
+    static final int REQUEST_VOICE_INPUT = 101;
     private ObjectGraph objectGraph;
+    protected boolean serviceConnected = false;
 
     public static MyoidAccessibilityService getMyoidService() {
         if (me == null) throw new Error("Myoid service not created.");
         return me;
     }
-
-    private final String TAG = "Myoid service";
-
-    @Inject
-    IMyoHubManager myoHubManager;
-
-    protected boolean serviceConnected = false;
 
     public static boolean isServiceConnected() {
         return me != null && me.serviceConnected;
@@ -64,7 +61,8 @@ public class MyoidAccessibilityService extends AccessibilityService {
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
-        if (event.getClassName().equals(EditText.class.getName()))
+        if (event.getClassName().equals(EditText.class.getName())
+                && inputResolver.isMouseModeAndUnlocked())
             startVoiceInput(event.getSource());
     }
 

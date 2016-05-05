@@ -263,7 +263,7 @@ public class OptionsController {
     private Drawable getIconImage(Icon icon) {
         Drawable iconImage;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            iconImage = mas.getResources().getDrawable(icon.getIconImage(), null);//TODO investigate themes.
+            iconImage = mas.getResources().getDrawable(icon.getIconImage(), null);
             assert iconImage != null;
             iconImage.setTint(Color.WHITE);
         } else {

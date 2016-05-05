@@ -133,6 +133,11 @@ public class InputResolver {
         return myo;
     }
 
+    public boolean isMouseModeAndUnlocked() {
+        return myoidStateMachine.getState() == State.MOUSE
+                && myo.isUnlocked();
+    }
+
     private class RunnableOnExit implements Runnable {
         final State state;
 
